@@ -34,10 +34,11 @@ if (!fs.existsSync(DATA_DIR)) {
 
 app.use(express.json());
 
+app.set('trust proxy', true);
+
 // --- 2. TELEGRAM (С КЕШЕМ) ---
 const TG_API_ID = 2040;
 const TG_API_HASH = "b18441a1ff607e10a989891a5462e627";
-const TG_SESSION_FILE = path.join(DATA_DIR, 'telegram_session.txt');
 
 // КЕШ ТЕЛЕГРАМА (Чтобы не ловить Flood Wait)
 // Структура: Map<dashboardName, { data: [], timestamp: 12345678 }>
@@ -319,10 +320,23 @@ app.get(['/api/telegram', '/api/telegram/:dashboard'], async (req, res) => {
 });
 
 app.get('/api/whoami', (req, res) => {
-    let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    if (ip && ip.startsWith('::ffff:')) ip = ip.replace('::ffff:', '');
+    // Теперь req.ip содержит реальный IP благодаря 'trust proxy'
+    let ip = req.ip || req.socket.remoteAddress;
+    
+    // Очистка от IPv6-mapped (если прилетит ::ffff:192.168.1.1)
+    if (ip && ip.includes('::ffff:')) {
+        ip = ip.replace('::ffff:', '');
+    }
+    
+    // Обработка локалхоста
     if (ip === '::1') ip = '127.0.0.1';
-    const isLocal = (ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.'));
+    
+    const isLocal = (
+        ip === '127.0.0.1' || 
+        ip.startsWith('192.168.') || 
+        ip.startsWith('10.') || 
+        (ip.startsWith('172.') && parseInt(ip.split('.')[1]) >= 16 && parseInt(ip.split('.')[1]) <= 31)
+    );
     res.json({ ip, isLocal });
 });
 

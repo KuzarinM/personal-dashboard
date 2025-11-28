@@ -26,17 +26,26 @@ const weather = ref(null)
 const time = ref('')
 const dateStr = ref('')
 
-// Разделяем состояния загрузки
-const isConfigLoading = ref(true) // Блокирует весь экран (только для конфига)
-const isEventsLoading = ref(false) // Локальный лоадер для таймеров
+const isConfigLoading = ref(true)
+const isEventsLoading = ref(false) 
 
 const isEditorOpen = ref(false)
 const fullConfig = ref({})
 const calendarError = ref(false)
 const telegramError = ref(false)
 
+// --- НОВАЯ ЛОГИКА: ВКЛ/ВЫКЛ ТЕЛЕГРАМА ---
+// По умолчанию включено, если в localStorage не сказано обратное
+const isTelegramEnabled = ref(localStorage.getItem('tg_enabled') !== 'false')
+
+const toggleTelegram = () => {
+    isTelegramEnabled.value = !isTelegramEnabled.value
+    localStorage.setItem('tg_enabled', isTelegramEnabled.value)
+}
+// ----------------------------------------
+
 const systemStatus = computed(() => {
-    if (calendarError.value || telegramError.value) return 'WARNING'
+    if (calendarError.value || (isTelegramEnabled.value && telegramError.value)) return 'WARNING'
     return 'ONLINE'
 })
 
@@ -67,11 +76,23 @@ const loadDashboardList = async () => {
   try { availableDashboards.value = await (await fetch('/api/dashboards')).json() } catch (e) {}
 }
 
-// --- АСИНХРОННАЯ ЗАГРУЗКА ЧАСТЕЙ ---
-
+const fetchDashboardEvents = async () => {
+    if (rawEvents.value.length === 0) isEventsLoading.value = true;
+    try {
+        const res = await fetch(`/api/events/${dashboardName.value}?t=${Date.now()}`)
+        if (!res.ok) throw new Error("Fetch failed")
+        rawEvents.value = await res.json()
+        calendarError.value = false 
+    } catch(e) { 
+        console.error("Events error", e)
+        calendarError.value = true
+    } finally {
+        isEventsLoading.value = false
+    }
+}
 
 const fetchNetworkInfo = async () => {
-    if (networkInfo.value.ip !== '...') return // Уже загружено
+    if (networkInfo.value.ip !== '...') return 
     try {
        const res = await fetch('/api/whoami')
        const data = await res.json()
@@ -92,11 +113,10 @@ const fetchNetworkInfo = async () => {
     } catch (e) {}
 }
 
-// --- ГЛАВНАЯ ЗАГРУЗКА ---
 const loadData = async () => {
   isConfigLoading.value = true
   categories.value = []
-  rawEvents.value = [] // Сбрасываем события при смене дашборда
+  rawEvents.value = [] 
   calendarError.value = false
   telegramError.value = false
   
@@ -107,7 +127,6 @@ const loadData = async () => {
   let isAuthSuccess = false
   
   try {
-    // 1. Блокирующая загрузка только КОНФИГА
     while (attempts < maxAttempts && !isAuthSuccess) {
         attempts++
         const configRes = await fetch(`/api/config/${currentDash}?t=${Date.now()}`)
@@ -135,12 +154,10 @@ const loadData = async () => {
         return
     }
 
-    // --- СТРАНИЦА УЖЕ ГОТОВА К ПОКАЗУ ---
     isConfigLoading.value = false 
 
-    // 2. Запускаем тяжелые запросы ПАРАЛЛЕЛЬНО (не блокируя интерфейс)
-    fetchDashboardEvents() // Календарь
-    fetchNetworkInfo()     // IP
+    fetchDashboardEvents() 
+    fetchNetworkInfo()     
 
   } catch (e) {
     console.error("Critical Load Error:", e)
@@ -157,7 +174,6 @@ const updateTime = () => {
   dateStr.value = now.toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long' })
 }
 
-// Погода (маленькая в шапке) - Тоже новые координаты
 const getWeather = async () => {
   try { weather.value = (await (await fetch('https://api.open-meteo.com/v1/forecast?latitude=54.3282&longitude=48.3866&current_weather=true')).json()).current_weather } catch (e) {}
 }
@@ -170,7 +186,6 @@ onMounted(() => {
   getWeather(); 
   timerInt = setInterval(updateTime, 1000); 
   updateTime() 
-  // Интервал 10 минут (600000 ms)
   eventsInt = setInterval(fetchDashboardEvents, 600000)
 })
 
@@ -201,34 +216,6 @@ const createNew = async () => {
 }
 
 const onConfigSaved = () => { isEditorOpen.value = false; loadData() }
-
-// Добавь новую переменную состояния
-const isFetchingEvents = ref(false) // <-- СЕМАФОР
-
-const fetchDashboardEvents = async () => {
-    // Если уже качаем - стоп
-    if (isFetchingEvents.value) return 
-    
-    isFetchingEvents.value = true
-    
-    // Показываем лоадер UI только если данных вообще нет
-    if (rawEvents.value.length === 0) isEventsLoading.value = true;
-    
-    try {
-        const target = dashboardName.value || 'default'
-        const res = await fetch(`/api/events/${target}?t=${Date.now()}`)
-        if (!res.ok) throw new Error("Fetch failed")
-        
-        rawEvents.value = await res.json()
-        calendarError.value = false 
-    } catch(e) { 
-        console.error("Auto-refresh events error", e)
-        calendarError.value = true
-    } finally {
-        isEventsLoading.value = false
-        isFetchingEvents.value = false // <-- ОСВОБОЖДАЕМ СЕМАФОР
-    }
-}
 </script>
 
 <template>
@@ -250,23 +237,33 @@ const fetchDashboardEvents = async () => {
       </div>
 
       <div class="flex items-center gap-3">
+        <!-- СЕЛЕКТОР -->
         <div class="flex items-center bg-zinc-900 border border-zinc-700 rounded px-2">
            <span class="text-zinc-500 text-[10px] mr-2 font-mono">LOAD:</span>
            <select :value="dashboardName" @change="router.push($event.target.value === 'default' ? '/' : '/' + $event.target.value)" class="bg-transparent text-emerald-500 text-xs font-mono py-1 outline-none cursor-pointer uppercase">
              <option v-for="d in availableDashboards" :key="d" :value="d">{{ d }}</option>
            </select>
         </div>
+
+        <!-- КНОПКА TG TOGGLE (Показываем только не на Default) -->
+        <button 
+            v-if="dashboardName !== 'default'"
+            @click="toggleTelegram"
+            class="text-[10px] font-mono border px-2 py-1 rounded transition w-20 text-center"
+            :class="isTelegramEnabled 
+                ? 'text-sky-400 border-sky-500/50 hover:bg-sky-500/10' 
+                : 'text-zinc-600 border-zinc-800 hover:text-zinc-400'"
+        >
+            {{ isTelegramEnabled ? 'TG: ON' : 'TG: OFF' }}
+        </button>
+
         <button @click="createNew" class="text-zinc-500 hover:text-emerald-400 font-mono text-xs border border-zinc-800 hover:border-emerald-500 px-2 py-1 rounded transition">[+]</button>
         <button @click="isEditorOpen = true" class="text-[10px] font-mono text-zinc-600 hover:text-emerald-400 border border-zinc-800 hover:border-emerald-500/50 px-2 py-1 rounded transition ml-2">[EDIT_CONFIG]</button>
       </div>
     </header>
 
-    <!-- ГЛАВНЫЙ ЛОАДЕР: ТОЛЬКО ДЛЯ КОНФИГА -->
-    <div v-if="isConfigLoading" class="text-center text-emerald-500/50 mt-20 font-mono animate-pulse">
-        INITIALIZING SYSTEM...
-    </div>
+    <div v-if="isLoading" class="text-center text-emerald-500/50 mt-20 font-mono animate-pulse">ACCESSING SECURE DATA...</div>
 
-    <!-- КОНТЕНТ ПОЯВЛЯЕТСЯ СРАЗУ ПОСЛЕ ЗАГРУЗКИ КОНФИГА -->
     <div v-else class="grid grid-cols-1 lg:grid-cols-4 gap-10 items-start">
       
       <!-- MAIN (LEFT) -->
@@ -318,7 +315,15 @@ const fetchDashboardEvents = async () => {
             <WeatherWidget />
         </template>
         <template v-else>
-            <TelegramWidget :dashboard-id="dashboardName" @error-change="(val) => telegramError = val" />
+            <!-- ПОКАЗЫВАЕМ ТЕЛЕГУ ТОЛЬКО ЕСЛИ ВКЛЮЧЕНА -->
+            <TelegramWidget 
+                v-if="isTelegramEnabled" 
+                :dashboard-id="dashboardName" 
+                @error-change="(val) => telegramError = val" 
+            />
+            <div v-else class="text-center py-4 border border-zinc-800 border-dashed rounded text-zinc-700 text-[10px] font-mono">
+                [ TG MODULE DISABLED ]
+            </div>
         </template>
 
         <!-- TIMERS -->
@@ -332,7 +337,6 @@ const fetchDashboardEvents = async () => {
                 <span class="text-emerald-500/50">///</span>
             </div>
 
-            <!-- ЛОАДЕР (ПОКАЗЫВАЕТСЯ ПРИ ПЕРВОЙ ЗАГРУЗКЕ СОБЫТИЙ) -->
             <div v-if="isEventsLoading && rawEvents.length === 0" class="text-zinc-600 text-[10px] font-mono italic p-4 border border-zinc-800 border-dashed text-center">
                 LOADING_CALENDAR_DATA...
             </div>
