@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  /* Глубокий черный фон, но не #000, а чуть мягче (Zinc-950) */
+  @apply bg-zinc-950 text-zinc-100;
+  
+  /* Техно-сетка на фоне */
+  background-image: 
+    linear-gradient(rgba(16, 185, 129, 0.03) 1px, transparent 1px), 
+    linear-gradient(90deg, rgba(16, 185, 129, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Изменим цвет выделения текста на зеленый */
+::selection {
+  @apply bg-emerald-500/30 text-emerald-200;
+}

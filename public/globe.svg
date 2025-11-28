@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Фон: тёмный квадрат со скруглением -->
+  <rect x="0" y="0" width="64" height="64" rx="16" fill="#18181b" />
+  
+  <!-- Декор: тонкая рамка -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="none" stroke="#27272a" stroke-width="2" />
+
+  <!-- Глобус: Внешний круг -->
+  <circle cx="32" cy="32" r="20" fill="none" stroke="#10b981" stroke-width="2" />
+  
+  <!-- Глобус: Экватор -->
+  <line x1="12" y1="32" x2="52" y2="32" stroke="#10b981" stroke-width="2" stroke-linecap="round" />
+  
+  <!-- Глобус: Меридиан (Эллипс) -->
+  <ellipse cx="32" cy="32" rx="10" ry="20" fill="none" stroke="#10b981" stroke-width="2" />
+  
+  <!-- Глобус: Центральная точка (блик) -->
+  <circle cx="32" cy="32" r="2" fill="#10b981" />
+</svg>
