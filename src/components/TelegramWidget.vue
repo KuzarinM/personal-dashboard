@@ -11,19 +11,15 @@ const chats = ref([])
 const status = ref('loading') 
 const knownMessageIds = ref(new Set())
 const isConnectionError = ref(false)
-
-// --- НОВЫЙ ФЛАГ ---
-// isFetching - это технический статус "прямо сейчас идет запрос"
-// loading - это визуальный статус "первая загрузка"
 const isFetching = ref(false)
 
 let isFirstLoad = true
+let interval = null // Переменная для таймера
 
+// --- ОСНОВНАЯ ФУНКЦИЯ ЗАГРУЗКИ ---
 const fetchTelegram = async () => {
-  // 1. БЛОКИРОВКА: Если запрос уже идет - выходим сразу
   if (isFetching.value) return
-  
-  isFetching.value = true // Поднимаем флаг
+  isFetching.value = true
 
   try {
     const res = await fetch(`/api/telegram/${props.dashboardId}?t=${Date.now()}`)
@@ -61,21 +57,13 @@ const fetchTelegram = async () => {
                 isSessionNew = true
             }
         } else {
-            // При первой загрузке просто наполняем базу, не помечаем как "новое сейчас"
             knownMessageIds.value.add(uniqueKey)
         }
-        
-        // Добавляем текущий ID в базу (чтобы при следующем цикле он не считался новым)
-        // Важно: мы добавляем его во временный Set ниже, но для логики isSessionNew нужно проверить старый Set
         
         return { ...chat, date: msgDate, isRecent, isSessionNew }
     })
     
-    // Обновляем базу известных ID
     const currentKeys = new Set(processedChats.map(c => `${c.id}_${c.msgId}`))
-    // Если это не первая загрузка - мержим новые ключи, чтобы не терять историю сессии
-    // (Или просто заменяем, если хотим сбрасывать "новизну" удаленных сообщений)
-    // В данном случае лучше заменить, чтобы не текла память
     knownMessageIds.value = currentKeys
 
     chats.value = processedChats
@@ -87,7 +75,6 @@ const fetchTelegram = async () => {
     isConnectionError.value = true
     emit('error-change', true)
   } finally {
-    // 2. РАЗБЛОКИРОВКА: Запрос завершен (успешно или нет)
     isFetching.value = false
   }
 }
@@ -102,13 +89,46 @@ const formatDate = (ts) => {
     return date.toLocaleDateString([], {day: 'numeric', month: 'short'})
 }
 
-let interval
+// --- УПРАВЛЕНИЕ ТАЙМЕРОМ (VISIBILITY API) ---
+
+const startPolling = () => {
+    // Если таймер уже есть - не дублируем
+    if (interval) return
+    
+    console.log('Tab active: Telegram polling started')
+    fetchTelegram() // Сразу обновляем данные при возвращении
+    interval = setInterval(fetchTelegram, 10000)
+}
+
+const stopPolling = () => {
+    if (interval) {
+        console.log('Tab hidden: Telegram polling paused')
+        clearInterval(interval)
+        interval = null
+    }
+}
+
+const handleVisibilityChange = () => {
+    if (document.hidden) {
+        stopPolling()
+    } else {
+        startPolling()
+    }
+}
+
 onMounted(() => {
-  fetchTelegram()
-  interval = setInterval(fetchTelegram, 10000)
+  // Запускаем сразу, если страница видна
+  if (!document.hidden) {
+      startPolling()
+  }
+  // Слушаем переключение вкладок
+  document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
-onUnmounted(() => clearInterval(interval))
+onUnmounted(() => {
+  stopPolling()
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+})
 </script>
 
 <template>
@@ -121,7 +141,6 @@ onUnmounted(() => clearInterval(interval))
          <svg class="w-3 h-3 fill-current" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.74 0zm5.784 8.014c.125 3.33-1.63 9.47-2.3 10.96-.282.63-.64.67-1.12.38l-4.2-3.13-2.07 1.94a.8.8 0 0 1-.65.31l.34-4.2 7.74-6.83c.36-.31-.08-.48-.52-.2l-9.6 5.9-4.08-1.25c-.9-.28-.91-.88.18-1.3 4.2-1.74 10.15-4.14 11.23-4.59.88-.36 1.7.2 1.05 1.29z"/></svg>
          TELEGRAM
        </span>
-       
        <span v-if="isConnectionError" class="animate-pulse text-red-500">⚠ ERROR</span>
        <span v-else-if="status === 'active'" class="bg-sky-500/20 text-sky-400 px-1.5 rounded">{{ chats.length }}</span>
     </div>
