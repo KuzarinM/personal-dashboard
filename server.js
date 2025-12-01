@@ -28,6 +28,7 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.set('trust proxy', true);
+const WHITELIST_PATH = path.join(DATA_DIR, 'whitelist.json');
 
 // --- 2. TELEGRAM CLIENT SETUP ---
 const TG_API_ID = 2040; 
@@ -292,10 +293,40 @@ app.get(['/api/telegram', '/api/telegram/:dashboard'], async (req, res) => {
 // --- 8. WHOAMI & STATIC ---
 app.get('/api/whoami', (req, res) => {
     let ip = req.ip || req.socket.remoteAddress;
-    if (ip && ip.includes('::ffff:')) ip = ip.replace('::ffff:', '');
+    
+    // Очистка от IPv6-префикса
+    if (ip && ip.includes('::ffff:')) {
+        ip = ip.replace('::ffff:', '');
+    }
     if (ip === '::1') ip = '127.0.0.1';
-    res.json({ ip, isLocal: (ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.')) });
+
+    // 1. Стандартная проверка на локальные диапазоны
+    let isLocal = (
+        ip === '127.0.0.1' || 
+        ip.startsWith('192.168.') || 
+        ip.startsWith('10.') || 
+        ip.endsWith('.local')
+    );
+
+    // 2. Проверка по Вайтлисту (если еще не локальный)
+    if (!isLocal && fs.existsSync(WHITELIST_PATH)) {
+        try {
+            const raw = fs.readFileSync(WHITELIST_PATH, 'utf8');
+            const allowedIps = JSON.parse(raw); // Ожидаем массив строк
+            if (Array.isArray(allowedIps) && allowedIps.includes(ip)) {
+                isLocal = true;
+            }
+        } catch (e) {
+            console.error("Whitelist read error:", e.message);
+        }
+    }
+
+    res.json({ 
+        ip: ip, 
+        isLocal: isLocal 
+    });
 });
+
 
 app.use(express.static(path.join(__dirname, 'dist')));
 

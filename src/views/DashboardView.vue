@@ -55,21 +55,111 @@ const toggleTelegram = () => {
     localStorage.setItem('tg_enabled', isTelegramEnabled.value)
 }
 
+// === МАГИЯ WEBRTC (ICE) ===
+// Попытка узнать локальный IP прямо из браузера
+const detectLocalIpViaWebRTC = () => {
+    return new Promise((resolve) => {
+        const pc = new RTCPeerConnection({ iceServers: [] }) // Без внешних серверов
+        pc.createDataChannel('') // Создаем канал, чтобы запустить сбор кандидатов
+        
+        pc.onicecandidate = (e) => {
+            if (!e.candidate) {
+                pc.close()
+                resolve(false)
+                return
+            }
+            
+            const line = e.candidate.candidate
+            // Ищем IP адреса в строке кандидата
+            const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/
+            const match = line.match(ipRegex)
+            
+            if (match) {
+                const ip = match[1]
+                // Проверяем, входит ли IP в частные диапазоны
+                // 192.168.x.x OR 10.x.x.x OR 172.16-31.x.x
+                const isPrivate = (
+                    ip.startsWith('192.168.') || 
+                    ip.startsWith('10.') || 
+                    (ip.startsWith('172.') && parseInt(ip.split('.')[1]) >= 16 && parseInt(ip.split('.')[1]) <= 31)
+                )
+
+                if (isPrivate) {
+                    console.log('WebRTC detected Local IP:', ip)
+                    pc.close()
+                    resolve(true) // УРА! Мы дома
+                    return
+                }
+            }
+        }
+        
+        pc.createOffer().then(sdp => pc.setLocalDescription(sdp)).catch(() => resolve(false))
+        
+        // Таймаут 1 сек, если браузер скрывает IP (mDNS)
+        setTimeout(() => {
+            pc.close()
+            resolve(false)
+        }, 1000)
+    })
+} 
+
+const getLocalIP = () => {
+  return new Promise(resolve => {
+    const pc = new RTCPeerConnection({ iceServers: [] })
+    pc.createDataChannel('')
+    
+    // Как только браузер находит кандидата (сетевой путь)
+    pc.onicecandidate = e => {
+      console.log(e.candidate.candidate)
+      if (!e.candidate) { pc.close(); resolve(null); return }
+      
+      // Ищем паттерн IP адреса v4
+      const ipRegex = /([0-9]{1,3}(\.[0-9]{1,3}){3})/
+      const match = e.candidate.candidate.match(ipRegex)
+      
+      if (match) {
+        const ip = match[1]
+        // Проверяем, что это частный адрес (192.168... или 10... или 172.16...)
+        // Мы хотим показать его, только если он локальный
+        if (ip.match(/^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01]))/)) {
+            pc.close()
+            resolve(ip)
+        }
+      }
+    }
+    
+    pc.createOffer().then(sdp => pc.setLocalDescription(sdp)).catch(() => resolve(null))
+    
+    // Если за 1 сек не нашли (или браузер скрыл IP), отдаем null
+    setTimeout(() => { pc.close(); resolve(null) }, 1000)
+  })
+}
+
 // --- NETWORK INFO ---
 const fetchNetworkInfo = async () => {
     try {
-       // 1. Проверяем локальность через наш сервер (он видит внутренний IP)
-       const internalRes = await fetch('/api/whoami')
-       const internalData = await internalRes.json()
-       isLocalUser.value = internalData.isLocal
-       
-       // 2. Получаем внешний IP и Гео через публичный API
-       // Если мы локально, networkInfo.ip покажет внешний адрес шлюза
-       const ipRes = await fetch('https://api.ipify.org?format=json')
-       const ipData = await ipRes.json()
-       networkInfo.value.ip = ipData.ip
+       // 1. Получаем ПУБЛИЧНЫЙ (Внешний) IP
+       // Это тот IP, под которым нас видит интернет
+       const publicRes = await fetch('https://api.ipify.org?format=json')
+       const publicData = await publicRes.json()
+       const publicIp = publicData.ip
 
-       const geoRes = await fetch(`https://ipwho.is/${ipData.ip}`)
+       // 2. Пытаемся найти ЛОКАЛЬНЫЙ IP через WebRTC
+       const localIp = await getLocalIP()
+
+       // 3. ЛОГИКА ОТОБРАЖЕНИЯ:
+       // Если WebRTC нашел локальный IP - показываем его (значит мы дома)
+       // Если нет - показываем публичный (значит мы снаружи или браузер скрыл локальный)
+       if (localIp) {
+           networkInfo.value.ip = localIp // Покажет 192.168.x.x
+           isLocalUser.value = true       // Автоматически разблокируем ссылки
+       } else {
+           networkInfo.value.ip = publicIp // Покажет 85.x.x.x
+           // Тут isLocalUser останется false, если сервер тоже не признал нас локальными
+       }
+
+       // 4. ГЕО-ИНФО (Всегда по публичному IP)
+       const geoRes = await fetch(`https://ipwho.is/${publicIp}`)
        const geo = await geoRes.json()
        if(geo.success) {
             networkInfo.value.location = `${geo.city}, ${geo.country_code}`
@@ -77,8 +167,8 @@ const fetchNetworkInfo = async () => {
             networkInfo.value.isp = geo.connection.isp
        }
     } catch (e) {
-        console.error("Net Info Error", e)
-        networkInfo.value.ip = 'N/A'
+        console.error("Net Check Error", e)
+        networkInfo.value.ip = 'OFFLINE'
     }
 }
 
