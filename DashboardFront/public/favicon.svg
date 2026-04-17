@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Фон: темная консоль -->
+  <rect x="0" y="0" width="64" height="64" rx="12" fill="#09090b" />
+  
+  <!-- Обводка: тонкий цинк -->
+  <rect x="2" y="2" width="60" height="60" rx="10" fill="none" stroke="#27272a" stroke-width="2" />
+  
+  <!-- Символ: > (prompt) -->
+  <path d="M18 20 L32 32 L18 44" fill="none" stroke="#10b981" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" />
+  
+  <!-- Символ: _ (курсор) -->
+  <line x1="38" y1="44" x2="52" y2="44" stroke="#10b981" stroke-width="6" stroke-linecap="round">
+    <!-- Анимация мигания -->
+    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite" />
+  </line>
+</svg>

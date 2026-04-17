@@ -1,0 +1,8 @@
+node_modules
+dist
+.git
+.gitignore
+*.log
+# Игнорируем папку data при сборке образа, 
+# потому что мы подключим твою локальную папку data как Volume
+data
