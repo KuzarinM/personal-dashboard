@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 namespace DashboardApi.Controllers
 {
@@ -261,32 +262,41 @@ namespace DashboardApi.Controllers
         // GET: api/dashboards/whoami (или просто api/whoami, если роутинг глобальный, но лучше здесь)
         // Чтобы роут совпал с фронтом, добавим атрибут Route
         [HttpGet("/api/whoami")]
-        [AllowAnonymous]
         public IActionResult WhoAmI()
         {
-            var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+            var remoteIp = HttpContext.Connection.RemoteIpAddress;
 
-            // Очистка от IPv6-префикса (::ffff:), который часто бывает в Docker/K8s/Localhost
-            if (ip.StartsWith("::ffff:")) ip = ip.Substring(7);
-            if (ip == "::1") ip = "127.0.0.1";
+            if (remoteIp == null) return Ok(new { ip = "Unknown", isLocal = false });
+
+            // Приводим IPv6 (::ffff:192.168.1.1) к IPv4, если нужно
+            var ipAddress = remoteIp.IsIPv4MappedToIPv6 ? remoteIp.MapToIPv4() : remoteIp;
+            string ip = ipAddress.ToString();
 
             // Проверка на локальность
-            bool isLocal = false;
-
-            // 1. Локалхост
-            if (ip == "127.0.0.1") isLocal = true;
-
-            // 2. Локальные сети (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
-            else if (ip.StartsWith("192.168.")) isLocal = true;
-            else if (ip.StartsWith("10.")) isLocal = true;
-            else if (ip.StartsWith("172."))
-            {
-                // Простая проверка для диапазона 172.16 - 172.31
-                var secondOctet = int.Parse(ip.Split('.')[1]);
-                if (secondOctet >= 16 && secondOctet <= 31) isLocal = true;
-            }
+            bool isLocal = IsPrivateIp(ipAddress);
 
             return Ok(new { ip, isLocal });
+        }
+
+        private static bool IsPrivateIp(IPAddress address)
+        {
+            // 1. Проверка на loopback (127.0.0.1, ::1)
+            if (IPAddress.IsLoopback(address)) return true;
+
+            byte[] bytes = address.GetAddressBytes();
+
+            // 2. Проверка диапазонов частных сетей (RFC 1918)
+            switch (bytes[0])
+            {
+                case 10: // 10.0.0.0/8
+                    return true;
+                case 172: // 172.16.0.0/12
+                    return bytes[1] >= 16 && bytes[1] <= 31;
+                case 192: // 192.168.0.0/16
+                    return bytes[1] == 168;
+                default:
+                    return false;
+            }
         }
 
         [HttpGet("/api/status/{dashboardId}")]

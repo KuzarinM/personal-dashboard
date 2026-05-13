@@ -23,7 +23,8 @@ const defaultWidgets = [
     { id: 'crypto', name: 'Crypto Markets', enabled: false },
     { id: 'hackernews', name: 'Hacker News Feed', enabled: false },
     { id: 'calculator', name: 'System Calculator', enabled: false },
-    { id: 'reminders', name: 'Reminder', enabled: false}
+    { id: 'reminders', name: 'Reminder', enabled: false},
+    { id: 'timetracking', name: 'Time Tracker', enabled: false}
 ]
 
 const form = ref({

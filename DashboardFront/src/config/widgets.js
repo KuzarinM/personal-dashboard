@@ -9,6 +9,7 @@ import FiatWidget from '@/components/FiatWidget.vue'
 import RemindersWidget from '@/components/RemindersWidget.vue'
 import MonitoringWidget from '@/components/MonitoringWidget.vue'
 import UserStatusWidget from '@/components/UserStatusWidget.vue'
+import TimeTrackingWidget from '@/components/TimeTrackingWidget.vue'
 
 export const widgetRegistry = {
     // Alt + W
@@ -42,5 +43,8 @@ export const widgetRegistry = {
     monitoring: { comp: MonitoringWidget, name: 'MONITORING', icon: '📡', shortcut: 'KeyU', keyChar: 'U' },
 
     // Alt + P
-    userstatus: { comp: UserStatusWidget, name: 'TEAM_STATUS', icon: '👥', shortcut: 'KeyP', keyChar: 'P' }
+    userstatus: { comp: UserStatusWidget, name: 'TEAM_STATUS', icon: '👥', shortcut: 'KeyP', keyChar: 'P' },
+
+    // Alt + K (Time Tracker)
+    timetracking: { comp: TimeTrackingWidget, name: 'TIME_TRACKER', icon: '⏱️', shortcut: 'KeyK', keyChar: 'K' }
 }

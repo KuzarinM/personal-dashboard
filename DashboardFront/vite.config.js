@@ -20,7 +20,7 @@ export default defineConfig({
     proxy: {
       '/api': {
         target: 'https://dev.me.mcrt.space',
-        //target:"http://localhost:5010",
+        //target:"https://localhost:7052",
         changeOrigin: true,
         secure: false, // Игнорировать самоподписанный сертификат
         ws: true       // <--- ДОБАВЬ ЭТУ СТРОКУ! (Включает прокси для WebSockets)

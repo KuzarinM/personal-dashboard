@@ -16,24 +16,29 @@ const getFlagEmoji = (countryCode) => {
 
 const fetchNetworkInfo = async () => {
   try {
-    // 1. Узнаем наш внутренний статус (локальный/нет)
     const internal = await request('/whoami')
     
-    // 2. Узнаем реальный ПУБЛИЧНЫЙ IP пользователя напрямую с фронта.
-    // Сервис ipify очень простой, поддерживает CORS и никогда не блокирует.
     const ipRes = await fetch('https://api.ipify.org?format=json')
     const { ip } = await ipRes.json()
 
-    // 3. Теперь запрашиваем GEO-данные через наш ПРОКСИ для этого конкретного IP.
-    // Так как мы передаем конкретный IP в URL, API вернет данные пользователя, а не прокси.
-    const geoRes = await fetch(`/geo-proxy/${ip}`)
-    const ext = await geoRes.json()
+    const geoRes = await fetch(`https://geoip.detector404.ru/api/v1/ip/${ip}`)
+    const json = await geoRes.json()
 
-    if (ext) {
+    if (json.success && json.data) {
+        const ext = json.data
         const newType = internal.isLocal ? 'LAN (SECURE)' : 'WAN (PUBLIC)'
-        const flag = getFlagEmoji(ext.country_code)
-        const isp = ext.organization || ext.isp || 'Unknown ISP'
-        const locString = `${flag} ${ext.city || '...'}, ${ext.country_code || ''} | ${isp}`
+        
+        // Безопасное получение данных с проверкой на null
+        const ccode = ext.country?.ccode || ''
+        const flag = getFlagEmoji(ccode)
+        
+        // Если ext.isp равно null, используем объект с пустыми строками, чтобы не было ошибки
+        const ispData = ext.isp || { isp: 'Unknown ISP' }
+        const ispName = ispData.isp || 'Unknown ISP'
+        
+        const location = ext.country?.location || 'Unknown'
+        
+        const locString = `${flag} ${location}, ${ccode.toUpperCase()} | ${ispName}`
 
         networkInfo.value = { 
             ip: ip, 

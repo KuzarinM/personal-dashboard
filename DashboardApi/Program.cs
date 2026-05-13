@@ -4,6 +4,7 @@ using DashboardApi.Hubs;
 using DashboardApi.Services;
 using Jering.Javascript.NodeJS;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -38,6 +39,17 @@ builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<CalendarAggregatorService>();
 builder.Services.AddSingleton<TelegramService>();
 builder.Services.AddScoped<EmailService>();
+
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+    // ВАЖНО: Укажите здесь IP-адреса ваших прокси (Nginx, балансировщики), 
+    // чтобы никто извне не мог подделать IP. 
+    // Если прокси нет, можно разрешить всё (но это менее безопасно):
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+});
 
 // --- 3. JWT AUTHENTICATION ---
 var key = builder.Configuration["Jwt:Key"] ?? "vash_ochen_dlinniy_secret_key_dlya_podpisi_tokena_at_least_32_chars";
@@ -106,16 +118,55 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-app.UseForwardedHeaders(new ForwardedHeadersOptions
-{
-    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.All
-});
+app.UseForwardedHeaders(); // ОБЯЗАТЕЛЬНО вызвать здесь
 
-// --- 6. INIT DB ---
+
+// --- 6. INIT DB & SAFE MIGRATIONS ---
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.EnsureCreated();
+    var connString = builder.Configuration["ConnectionStrings:DefaultConnection"] ?? "Data Source=dashboard.db";
+    var dbFilePath = connString.Replace("Data Source=", "").Trim();
+    var backupFilePath = dbFilePath + ".bak";
+
+    try
+    {
+        // 1. Делаем бекап, если база уже существует
+        if (System.IO.File.Exists(dbFilePath))
+        {
+            System.IO.File.Copy(dbFilePath, backupFilePath, overwrite: true);
+            logger.Info("DB Backup created successfully.");
+        }
+
+        // 2. Накатываем миграции (ВМЕСТО EnsureCreated!)
+        var pendingMigrations = db.Database.GetPendingMigrations();
+        if (pendingMigrations.Any())
+        {
+            logger.Info($"Applying {pendingMigrations.Count()} pending migrations...");
+            db.Database.Migrate(); // Применяет миграции
+            logger.Info("Migrations applied successfully.");
+        }
+
+        // Удаляем бекап при успехе (по желанию можно оставить)
+        if (System.IO.File.Exists(backupFilePath))
+            System.IO.File.Delete(backupFilePath);
+    }
+    catch (Exception ex)
+    {
+        logger.Fatal(ex, "FATAL ERROR during migrations! Rolling back database...");
+
+        // 3. Восстанавливаем базу из бекапа при падении
+        if (System.IO.File.Exists(backupFilePath))
+        {
+            System.IO.File.Copy(backupFilePath, dbFilePath, overwrite: true);
+            logger.Fatal("Database restored from backup.");
+        }
+
+        // Роняем приложение, так как состояние БД непредсказуемо
+        Environment.Exit(1);
+    }
+
+    // Инициализация дефолтного админа
     if (!db.Users.Any())
     {
         var auth = scope.ServiceProvider.GetRequiredService<AuthService>();

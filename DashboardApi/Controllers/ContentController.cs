@@ -88,7 +88,7 @@ namespace DashboardApi.Controllers
             // Можно добавить проверку IsPublic для чтения, если нужно
             var notes = await _db.Notes
                 .Where(n => n.DashboardId == dashboardId && !n.IsArchived) // Только НЕ архивные
-                .Select(n => new NoteDto(n.Id, n.Title, n.Content, n.IsPinned, n.IsArchived, n.Type, n.PublicId))
+                .Select(n => new NoteDto(n.Id, n.Title, n.Content, n.IsArchived, n.IsPinned,n.Type, n.PublicId))
                 .ToListAsync();
             return Ok(notes);
         }
@@ -101,7 +101,7 @@ namespace DashboardApi.Controllers
 
             var notes = await _db.Notes
                 .Where(n => n.DashboardId == dashboardId && n.IsArchived) // Только архивные
-                .Select(n => new NoteDto(n.Id, n.Title, n.Content, n.IsPinned, n.IsArchived, n.Type, n.PublicId))
+                .Select(n => new NoteDto(n.Id, n.Title, n.Content, n.IsArchived, n.IsPinned,  n.Type, n.PublicId))
                 .ToListAsync();
             return Ok(notes);
         }
