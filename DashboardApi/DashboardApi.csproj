@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Google_GenerativeAI" Version="3.6.6" />
     <PackageReference Include="Ical.Net" Version="5.2.0" />
     <PackageReference Include="Jering.Javascript.NodeJS" Version="7.0.0" />
     <PackageReference Include="MailKit" Version="4.14.1" />

@@ -10,6 +10,7 @@ import RemindersWidget from '@/components/RemindersWidget.vue'
 import MonitoringWidget from '@/components/MonitoringWidget.vue'
 import UserStatusWidget from '@/components/UserStatusWidget.vue'
 import TimeTrackingWidget from '@/components/TimeTrackingWidget.vue'
+import PodcastWidget from '@/components/PodcastWidget.vue'
 
 export const widgetRegistry = {
     // Alt + W
@@ -46,5 +47,7 @@ export const widgetRegistry = {
     userstatus: { comp: UserStatusWidget, name: 'TEAM_STATUS', icon: '👥', shortcut: 'KeyP', keyChar: 'P' },
 
     // Alt + K (Time Tracker)
-    timetracking: { comp: TimeTrackingWidget, name: 'TIME_TRACKER', icon: '⏱️', shortcut: 'KeyK', keyChar: 'K' }
+    timetracking: { comp: TimeTrackingWidget, name: 'TIME_TRACKER', icon: '⏱️', shortcut: 'KeyK', keyChar: 'K' },
+
+    podcast: {  comp: PodcastWidget, name: 'AI_PODCAST', icon: '🎙️', shortcut: 'KeyO', keyChar: 'O' }
 }

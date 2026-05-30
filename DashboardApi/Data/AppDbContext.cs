@@ -22,6 +22,8 @@ namespace DashboardApi.Data
         public DbSet<Tag> Tags { get; set; }
         public DbSet<TaskItem> Tasks { get; set; }
         public DbSet<TimeEntry> TimeEntries { get; set; }
+        public DbSet<ReportState> ReportStates { get; set; }
+        public DbSet<ReportSnapshot> ReportSnapshots { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

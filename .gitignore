@@ -364,3 +364,4 @@ FodyWeavers.xsd
 /DashboardApi/dashboard.db
 /DashboardApi/dashboard.db-shm
 /DashboardApi/dashboard.db-wal
+/DashboardApi/appsettings.Development.json

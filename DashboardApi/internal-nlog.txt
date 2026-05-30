@@ -117,3 +117,185 @@
 2026-04-30 12:16:45.3355 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
 2026-04-30 12:16:45.4477 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
 2026-04-30 12:16:46.2116 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:01:56.2712 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:01:56.2994 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:01:56.3021 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:01:56.3021 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:01:56.3383 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:01:56.7193 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:03:35.5954 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:03:35.6592 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:03:35.6621 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:03:35.6621 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:03:35.7461 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:03:36.9205 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:18:25.7103 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:18:25.7583 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:18:25.7583 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:18:25.7583 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:18:25.8729 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:18:26.6711 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:18:49.7398 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:18:49.7398 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:18:49.7398 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:18:49.7563 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:18:49.7736 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:18:49.8376 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:18:56.3357 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:18:56.3633 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:18:56.3633 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:18:56.3633 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:18:56.4306 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:18:56.9407 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:27:40.0541 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:27:40.0905 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:27:40.0905 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:27:40.0977 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:27:40.2087 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:27:41.0968 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:31:55.0334 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:31:55.0730 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:31:55.0730 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:31:55.0836 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:31:55.1668 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:31:55.9333 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:38:12.4132 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:38:12.4397 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:38:12.4417 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:38:12.4417 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:38:12.5037 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:38:13.0411 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:52:08.3027 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:52:08.3417 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:52:08.3417 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:52:08.3495 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:52:08.4363 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:52:09.3277 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:53:17.3520 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:53:17.3916 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:53:17.3947 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:53:17.3947 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:53:17.4930 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:53:18.4106 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:55:21.4893 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:55:21.5264 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:55:21.5264 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:55:21.5358 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:55:21.6144 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:55:22.6156 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:56:13.8117 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:56:13.8913 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:56:13.8913 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:56:13.9096 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:56:14.0344 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:56:15.1852 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 11:59:41.9473 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 11:59:42.0199 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 11:59:42.0199 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 11:59:42.0199 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 11:59:42.1446 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 11:59:43.1374 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 12:00:22.0199 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 12:00:22.0640 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 12:00:22.0682 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 12:00:22.0682 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 12:00:22.1712 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 12:00:24.0369 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 12:07:18.6849 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 12:07:18.7186 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 12:07:18.7186 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 12:07:18.7253 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 12:07:18.8042 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 12:07:19.5787 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 12:09:11.0686 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 12:09:11.1036 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 12:09:11.1036 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 12:09:11.1036 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 12:09:11.2097 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 12:09:12.0210 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 12:10:07.9553 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 12:10:07.9796 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 12:10:07.9796 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 12:10:07.9796 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 12:10:08.0368 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 12:10:08.5346 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 13:13:36.4429 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 13:13:36.4754 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 13:13:36.4754 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 13:13:36.4754 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 13:13:36.5531 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 13:13:37.6616 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 13:14:35.5512 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 13:14:35.5761 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 13:14:35.5761 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 13:14:35.5761 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 13:14:35.6356 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 13:14:36.0683 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 13:21:43.2144 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 13:21:43.2565 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 13:21:43.2565 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 13:21:43.2565 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 13:21:43.3478 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 13:21:44.2580 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 13:23:29.0199 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 13:23:29.0474 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 13:23:29.0474 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 13:23:29.0525 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 13:23:29.1200 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 13:23:29.6227 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 13:25:37.2131 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 13:25:37.2500 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 13:25:37.2500 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 13:25:37.2569 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 13:25:37.3083 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 13:25:37.7785 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 14:39:16.9487 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 14:39:16.9853 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 14:39:16.9880 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 14:39:16.9880 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 14:39:17.0665 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 14:39:18.5915 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 14:40:16.2290 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 14:40:16.2563 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 14:40:16.2563 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 14:40:16.2563 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 14:40:16.3082 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 14:40:16.7916 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 15:19:08.7302 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 15:19:08.7746 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 15:19:08.7776 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 15:19:08.7776 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 15:19:08.9160 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 15:19:10.5893 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.
+2026-05-30 15:24:04.7732 Warn Error has been raised. Exception: NLog.NLogConfigurationException: 'FileTarget' cannot assign unknown property 'concurrentWrites'='true'
+   at NLog.Config.LoggingConfigurationParser.SetPropertyValueFromString[T](T targetObject, String propertyName, String propertyValue, ValidatedConfigurationElement element)
+2026-05-30 15:24:04.8287 Info Registered target NLog.Targets.FileTarget(Name=allfile)
+2026-05-30 15:24:04.8404 Info Registered target NLog.Targets.ColoredConsoleTarget(Name=lifetimeConsole)
+2026-05-30 15:24:04.8404 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.6.4706. Product version: 6.0.6+1913a823347d47c0b004ce714af74436261daf20. GlobalAssemblyCache: False
+2026-05-30 15:24:04.9822 Info Configuration initialized: TargetNames=allfile, lifetimeConsole, ConfigItems=34, AutoReload=true, FilePath=E:\Project\Csh development\VS\DashboardApi\DashboardApi\bin\Release\net8.0\nlog.config
+2026-05-30 15:24:05.9334 Warn Logger: Microsoft.Hosting.Lifetime configured with duplicate output to target: ColoredConsoleTarget(Name=lifetimeConsole). LoggingRule with NamePattern='Microsoft.Hosting.Lifetime' and Level=Warn has been skipped.

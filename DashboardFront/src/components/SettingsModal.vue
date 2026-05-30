@@ -24,7 +24,8 @@ const defaultWidgets = [
     { id: 'hackernews', name: 'Hacker News Feed', enabled: false },
     { id: 'calculator', name: 'System Calculator', enabled: false },
     { id: 'reminders', name: 'Reminder', enabled: false},
-    { id: 'timetracking', name: 'Time Tracker', enabled: false}
+    { id: 'timetracking', name: 'Time Tracker', enabled: false},
+    { id: 'podcast', name: 'FM Morning Podcast', enabled: false }
 ]
 
 const form = ref({

@@ -220,6 +220,56 @@ namespace DashboardApi.Controllers
             var result = await _emailService.GetUnreadEmailsAsync(dashboardId);
             return Ok(result);
         }
+
+        // --- WEB SCRAPER ---
+
+        [HttpGet("{dashboardId}/webscraper/settings")]
+        [Authorize]
+        public async Task<IActionResult> GetWebScraperSettings(int dashboardId)
+        {
+            var integration = await _db.Integrations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(i => i.DashboardId == dashboardId && i.Type == "WebScraper");
+
+            if (integration == null || string.IsNullOrEmpty(integration.ConfigJson))
+            {
+                // Возвращаем пустую конфигурацию по умолчанию
+                return Ok(new DashboardApi.DTOs.Integrations.WebScraperConfigDto());
+            }
+
+            return Content(integration.ConfigJson, "application/json");
+        }
+
+        [HttpPut("{dashboardId}/webscraper/settings")]
+        [Authorize]
+        public async Task<IActionResult> SaveWebScraperSettings(int dashboardId, [FromBody] DashboardApi.DTOs.Integrations.WebScraperConfigDto dto)
+        {
+            var dash = await _db.Dashboards
+                .FirstOrDefaultAsync(d => d.Id == dashboardId && d.UserId == GetUserId());
+
+            if (dash == null)
+            {
+                return Forbid();
+            }
+
+            var integration = await _db.Integrations
+                .FirstOrDefaultAsync(i => i.DashboardId == dashboardId && i.Type == "WebScraper");
+
+            if (integration == null)
+            {
+                integration = new Integration
+                {
+                    DashboardId = dashboardId,
+                    Type = "WebScraper"
+                };
+                _db.Integrations.Add(integration);
+            }
+
+            integration.ConfigJson = JsonConvert.SerializeObject(dto);
+            await _db.SaveChangesAsync();
+
+            return Ok(new { success = true });
+        }
     }
 
 }

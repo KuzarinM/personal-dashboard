@@ -34,6 +34,9 @@ builder.Services.AddHostedService<ReminderBackgroundService>();
 builder.Services.AddHostedService<MonitoringBackgroundService>();
 builder.Services.AddHostedService<SmartPollerService>();
 
+builder.Services.AddScoped<MorningReportService>();
+builder.Services.AddScoped<EdgeTtsService>();
+builder.Services.AddScoped<GeminiPodcastService>();
 builder.Services.AddScoped<WeatherService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<CalendarAggregatorService>();
