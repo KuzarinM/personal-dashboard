@@ -308,13 +308,14 @@ onUnmounted(() => {
     </Teleport>
 
     <!-- FLOATING WIDGETS -->
-    <FloatingWindow 
-         v-for="id in floatingWidgets" 
-         :key="id" 
-         :title="widgetRegistry[id].name" 
-         :initial-x="getInitialX()" 
-         :initial-y="100" 
-         @close="floatingWidgets.delete(id)"
+    <FloatingWindow
+          v-for="id in floatingWidgets"
+          :key="id"
+          :title="widgetRegistry[id].name"
+          :width-class="id === 'dndcatalog' ? 'w-[440px]' : 'w-80'"
+          :initial-x="getInitialX()"
+          :initial-y="100"
+          @close="floatingWidgets.delete(id)"
     >
         <component 
              :is="widgetRegistry[id].comp" 

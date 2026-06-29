@@ -11,6 +11,8 @@ import MonitoringWidget from '@/components/MonitoringWidget.vue'
 import UserStatusWidget from '@/components/UserStatusWidget.vue'
 import TimeTrackingWidget from '@/components/TimeTrackingWidget.vue'
 import PodcastWidget from '@/components/PodcastWidget.vue'
+import DndCharacterWidget from '@/components/DndCharacterWidget.vue' 
+import DndCatalogWidget from '@/components/DndCatalogWidget.vue'
 
 export const widgetRegistry = {
     // Alt + W
@@ -49,5 +51,11 @@ export const widgetRegistry = {
     // Alt + K (Time Tracker)
     timetracking: { comp: TimeTrackingWidget, name: 'TIME_TRACKER', icon: '⏱️', shortcut: 'KeyK', keyChar: 'K' },
 
-    podcast: {  comp: PodcastWidget, name: 'AI_PODCAST', icon: '🎙️', shortcut: 'KeyO', keyChar: 'O' }
+    podcast: {  comp: PodcastWidget, name: 'AI_PODCAST', icon: '🎙️', shortcut: 'KeyO', keyChar: 'O' },
+    
+    // Alt + D
+    dndsheet: { comp: DndCharacterWidget, name: 'DND_CHARACTER', icon: '🐉', shortcut: 'KeyD', keyChar: 'D' },
+
+    // Alt + G (Global Catalog) 
+    dndcatalog: { comp: DndCatalogWidget, name: 'DND_CATALOG', icon: '📚', shortcut: 'KeyG', keyChar: 'G' }
 }

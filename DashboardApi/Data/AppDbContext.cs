@@ -24,6 +24,8 @@ namespace DashboardApi.Data
         public DbSet<TimeEntry> TimeEntries { get; set; }
         public DbSet<ReportState> ReportStates { get; set; }
         public DbSet<ReportSnapshot> ReportSnapshots { get; set; }
+        public DbSet<DndCharacter> DndCharacters { get; set; }
+        public DbSet<DndCatalog> DndCatalogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
