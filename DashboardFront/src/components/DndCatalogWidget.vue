@@ -3,6 +3,11 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { request } from '@/api'
 import { useSignalR } from '@/composables/useSignalR'
 
+const props = defineProps({
+  dashboardId: Number,
+  allowEdit: { type: Boolean, default: true } // Получаем права на изменение
+})
+
 const catalog = ref({ items: [], spells: [] })
 const activeTab = ref('items')
 const searchQuery = ref('')
@@ -16,9 +21,9 @@ const editingSpellIndex = ref(null)
 const loadCatalog = async () => {
   loading.value = true
   try {
-    const parsed = await request('/dnd/catalog')
+    // Отправляем запрос с указанием ID текущего дашборда
+    const parsed = await request(`/dnd/catalog?dashboardId=${props.dashboardId}`)
     if (parsed) {
-      // Инициализируем строковое представление тегов для редактора
       parsed.items = (parsed.items || []).map(i => ({
         ...i,
         tagsRaw: i.tags ? i.tags.join(', ') : ''
@@ -33,8 +38,9 @@ const loadCatalog = async () => {
 }
 
 const saveCatalog = async () => {
+  if (!props.allowEdit) return
   try {
-    await request('/dnd/catalog', {
+    await request(`/dnd/catalog?dashboardId=${props.dashboardId}`, {
       method: 'PUT',
       body: JSON.stringify(catalog.value)
     })
@@ -49,7 +55,7 @@ const handleCatalogSocketUpdate = () => {
 
 onMounted(() => {
   loadCatalog()
-  on('dnd_catalog', handleCatalogSocketUpdate) // Подписка на SignalR-события изменений каталога
+  on('dnd_catalog', handleCatalogSocketUpdate)
 })
 
 onBeforeUnmount(() => {
@@ -102,7 +108,6 @@ const removeSpell = (idx) => {
 const saveEdit = () => {
   if (editingItemIndex.value !== null) {
     const item = catalog.value.items[editingItemIndex.value]
-    // Конвертируем строку тегов обратно в массив
     item.tags = item.tagsRaw ? item.tagsRaw.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) : []
   }
   editingItemIndex.value = null
@@ -120,7 +125,8 @@ const saveEdit = () => {
         <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse"></span>
         SHARED_CATALOG
       </span>
-      <div class="flex gap-2 text-[9px] font-mono" v-if="!loading">
+      <!-- Панель добавления скрывается, если редактирование запрещено -->
+      <div class="flex gap-2 text-[9px] font-mono" v-if="!loading && allowEdit">
         <button @click="startAddCategoryItem" class="text-emerald-500 hover:text-emerald-400 transition outline-none">[+ПРЕДМЕТ]</button>
         <button @click="startAddCategorySpell" class="text-blue-500 hover:text-blue-400 transition outline-none">[+МАГИЯ]</button>
       </div>
@@ -156,7 +162,6 @@ const saveEdit = () => {
         </div>
 
         <!-- СПИСОК ПРЕДМЕТОВ -->
-        <!-- ОШИБКА ИСПРАВЛЕНА: Атрибут v-slot удален с тега div -->
         <div v-if="activeTab === 'items'" class="overflow-y-auto custom-scrollbar flex-1 space-y-2 pr-1 max-h-[400px]">
           <div v-for="(item, idx) in filteredItems" :key="idx" class="p-2.5 bg-zinc-950/20 border border-zinc-800 rounded-sm flex flex-col gap-1 relative">
             
@@ -164,7 +169,7 @@ const saveEdit = () => {
               <div class="truncate">
                 <span class="font-bold text-zinc-200">{{ item.name }}</span>
               </div>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2" v-if="allowEdit">
                 <button @click="editingItemIndex = idx" class="text-[8px] text-zinc-500 hover:text-emerald-400 outline-none">[ИЗМЕН.]</button>
                 <button @click="removeItem(idx)" class="text-[9px] text-zinc-600 hover:text-red-500 font-bold outline-none">×</button>
               </div>
@@ -190,13 +195,12 @@ const saveEdit = () => {
         </div>
 
         <!-- СПИСОК ЗАКЛИНАНИЙ -->
-        <!-- ОШИБКА ИСПРАВЛЕНА: Атрибут v-slot удален с тега div -->
         <div v-if="activeTab === 'spells'" class="overflow-y-auto custom-scrollbar flex-1 space-y-2 pr-1 max-h-[400px]">
           <div v-for="(spell, idx) in filteredSpells" :key="idx" class="p-2.5 bg-zinc-950/20 border border-zinc-800 rounded-sm flex flex-col gap-1 relative">
             
             <div v-if="editingSpellIndex !== idx" class="flex justify-between items-start">
               <span class="font-bold text-zinc-200">{{ spell.name }} <span class="text-zinc-600 font-normal text-[8px]">({{ spell.level }} кр.)</span></span>
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2" v-if="allowEdit">
                 <button @click="editingSpellIndex = idx" class="text-[8px] text-zinc-500 hover:text-emerald-400 outline-none">[ИЗМЕН.]</button>
                 <button @click="removeSpell(idx)" class="text-[9px] text-zinc-600 hover:text-red-500 font-bold outline-none">×</button>
               </div>

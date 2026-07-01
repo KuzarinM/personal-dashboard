@@ -311,6 +311,7 @@ onUnmounted(() => {
     <FloatingWindow
           v-for="id in floatingWidgets"
           :key="id"
+          allow-edit="canEditContent || (['dndsheet', 'dndcatalog'].includes(id) && dashboardData.isPublic)"
           :title="widgetRegistry[id].name"
           :width-class="id === 'dndcatalog' ? 'w-[440px]' : 'w-80'"
           :initial-x="getInitialX()"

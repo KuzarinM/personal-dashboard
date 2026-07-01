@@ -5,7 +5,8 @@ import { useSignalR } from '@/composables/useSignalR'
 import DndSettingsModal from '@/components/DndSettingsModal.vue'
 
 const props = defineProps({
-  dashboardId: Number
+  dashboardId: Number,
+  allowEdit: { type: Boolean, default: true } // <-- Получаем права из DashboardView
 })
 
 const { on, off } = useSignalR()
@@ -33,12 +34,6 @@ const defaultCharacter = {
   initiative: 3,
   speed: 30,
   passivePerception: 14,
-  
-  // Добавленные новые свойства для Кастеров
-  spellAttackBonus: 7, // Магическая Сила (Бонус атаки)
-  spellSaveDc: 15,     // Магическая Защита (Сложность спасброска)
-  inspiration: false,  // Героическое вдохновение
-  
   stats: [
     { name: 'СИЛ', value: 8, mod: -1 },
     { name: 'ЛОВ', value: 16, mod: 3 },
@@ -102,11 +97,19 @@ const defaultCharacter = {
     { name: 'Ускорение (Haste)', type: 'turns', value: 8 },
     { name: 'Сглаз (Hex)', type: 'shortRest', value: 0 },
     { name: 'Доспехи мага', type: 'longRest', value: 0 }
+  ],
+  spellAttackBonus: 7, 
+  spellSaveDc: 15,     
+  inspiration: false,
+  feats: [
+    { name: 'Посвященный в магию (Magic Initiate)', desc: 'Вы изучили два заговора и одно заклинание 1-го круга класса Волшебник.' },
+    { name: 'Бдительный (Alert)', desc: 'Бонус +5 к инициативе, персонажа нельзя застать врасплох.' }
   ]
 }
 
 // СОХРАНЕНИЕ НА БЭКЕНД
 const saveCharacterData = async () => {
+  if (!props.allowEdit) return // Защита
   try {
     await request(`/dnd/${props.dashboardId}/character`, {
       method: 'PUT',
@@ -122,14 +125,11 @@ const loadCharacterData = async () => {
   loading.value = true
   try {
     const parsed = await request(`/dnd/${props.dashboardId}/character`)
-    
-    // Если на бэкенде есть сохраненный персонаж
     if (parsed && parsed.name && parsed.stats) {
-      // Обеспечиваем безопасное слияние новых полей (магические статы и вдохновение)
       parsed.inspiration = parsed.inspiration !== undefined ? parsed.inspiration : false
       parsed.spellAttackBonus = parsed.spellAttackBonus !== undefined ? parsed.spellAttackBonus : 7
       parsed.spellSaveDc = parsed.spellSaveDc !== undefined ? parsed.spellSaveDc : 15
-      
+      parsed.feats = parsed.feats !== undefined ? parsed.feats : []
       character.value = parsed
     } else {
       character.value = null
@@ -164,7 +164,7 @@ const handleConfigSave = (newData) => {
 // --- ХИТЫ ---
 const hpModifier = ref(1)
 const adjustHp = (amount) => {
-  if (!character.value) return
+  if (!character.value || !props.allowEdit) return
   let target = character.value.hp.current + amount
   if (target > character.value.hp.max) target = character.value.hp.max
   if (target < 0) target = 0
@@ -180,14 +180,14 @@ const hpPercent = computed(() => {
 
 // --- ВДОХНОВЕНИЕ ---
 const toggleInspiration = () => {
-  if (!character.value) return
+  if (!character.value || !props.allowEdit) return
   character.value.inspiration = !character.value.inspiration
   saveCharacterData()
 }
 
 // --- ЯЧЕЙКИ И ПОДГОТОВКА ЗАКЛИНАНИЙ ---
 const toggleSpellSlot = (slotIdx, dotIdx) => {
-  if (!character.value) return
+  if (!character.value || !props.allowEdit) return
   const slot = character.value.spellSlots[slotIdx]
   if (dotIdx <= slot.used) {
     slot.used--
@@ -203,6 +203,7 @@ const activeSpellSlots = computed(() => {
 })
 
 const togglePrep = (spell) => {
+  if (!props.allowEdit) return
   spell.isPrepared = !spell.isPrepared
   saveCharacterData()
 }
@@ -235,6 +236,7 @@ const filteredBackpack = computed(() => {
 })
 
 const toggleEquipState = (item) => {
+  if (!props.allowEdit) return
   item.isEquipped = !item.isEquipped
   saveCharacterData()
 }
@@ -246,7 +248,7 @@ const totalGoldValue = computed(() => {
 })
 
 const consolidateCoins = () => {
-  if (!character.value) return
+  if (!character.value || !props.allowEdit) return
   const c = character.value.coins
   let totalCp = (c.pp * 1000) + (c.gp * 100) + (c.ep * 50) + (c.sp * 10) + c.cp
   const pp = Math.floor(totalCp / 1000)
@@ -261,7 +263,7 @@ const consolidateCoins = () => {
 }
 
 const modifyCoin = (type, amt) => {
-  if (!character.value) return
+  if (!character.value || !props.allowEdit) return
   if (character.value.coins[type] + amt >= 0) {
     character.value.coins[type] += amt
     saveCharacterData()
@@ -290,7 +292,7 @@ const newEffectType = ref('turns')
 const newEffectValue = ref(5)
 
 const addEffect = () => {
-  if (!character.value || !newEffectName.value.trim()) return
+  if (!character.value || !newEffectName.value.trim() || !props.allowEdit) return
   character.value.effects.push({
     name: newEffectName.value.trim(),
     type: newEffectType.value,
@@ -302,7 +304,7 @@ const addEffect = () => {
 }
 
 const removeEffect = (idx) => {
-  if (!character.value) return
+  if (!character.value || !props.allowEdit) return
   character.value.effects.splice(idx, 1)
   saveCharacterData()
 }
@@ -312,7 +314,7 @@ const hasTurnEffects = computed(() => {
 })
 
 const nextTurn = () => {
-  if (!character.value || !character.value.effects) return
+  if (!character.value || !character.value.effects || !props.allowEdit) return
   character.value.effects = character.value.effects.map(e => {
     if (e.type === 'turns') {
       return { ...e, value: e.value - 1 }
@@ -332,7 +334,7 @@ const getEffectLabel = (eff) => {
 
 // --- ОТДЫХИ ---
 const triggerShortRest = () => {
-  if (!character.value) return
+  if (!character.value || !props.allowEdit) return
   if (character.value.rests.shortRemaining > 0) {
     character.value.rests.shortRemaining--
     const healAmount = Math.ceil(character.value.hp.max * 0.25)
@@ -346,7 +348,7 @@ const triggerShortRest = () => {
 }
 
 const triggerLongRest = () => {
-  if (!character.value) return
+  if (!character.value || !props.allowEdit) return
   character.value.hp.current = character.value.hp.max
   character.value.spellSlots.forEach(s => s.used = 0)
   character.value.rests.shortRemaining = character.value.rests.shortMax
@@ -377,6 +379,7 @@ const makeSystemRoll = (name, text) => {
     <DndSettingsModal 
       :is-open="isSettingsOpen" 
       :character-data="character" 
+      :dashboard-id="dashboardId"
       @close="isSettingsOpen = false" 
       @save="handleConfigSave" 
     />
@@ -563,7 +566,7 @@ const makeSystemRoll = (name, text) => {
           <!-- Список известных заклинаний -->
           <div class="space-y-1">
             <div class="text-[9px] text-zinc-500 uppercase tracking-widest border-b border-zinc-900 pb-0.5">Известные заклинания</div>
-            <div class="space-y-1 max-h-[360px] overflow-y-auto custom-scrollbar pr-1">
+            <div class="space-y-1 max-h-[260px] overflow-y-auto custom-scrollbar pr-1">
               <div v-for="spell in character.spells" :key="spell.name" 
                    class="p-1.5 bg-zinc-950/30 border border-zinc-800 rounded-sm flex items-center justify-between text-[11px]">
                 <div class="flex items-center gap-1.5 min-w-0">
@@ -712,6 +715,7 @@ const makeSystemRoll = (name, text) => {
         </div>
 
         <!-- ВКЛАДКА 4: DETAILS -->
+<!-- ВКЛАДКА 4: DETAILS -->
         <div v-if="activeTab === 'details'" class="space-y-3 animate-in fade-in duration-150 flex flex-col min-h-[500px]">
           <!-- Детали -->
           <div class="bg-zinc-950/50 p-2 border border-zinc-900 rounded-sm text-[10px] space-y-1 leading-normal text-zinc-400">
@@ -774,10 +778,23 @@ const makeSystemRoll = (name, text) => {
                 </div>
               </div>
             </div>
-            <!-- Добавить эффект -->
-
           </div>
-        </div>
+
+          <!-- Черты и особенности (НОВЫЙ ДОБАВЛЕННЫЙ БЛОК) -->
+          <div class="space-y-1 border-t border-zinc-900 pt-2 flex flex-col max-h-[160px] flex-none">
+            <div class="text-[9px] text-zinc-500 uppercase tracking-widest pb-0.5 font-bold">Черты и особенности</div>
+            <div class="overflow-y-auto custom-scrollbar space-y-1.5 pr-1 flex-1">
+              <div v-for="feat in character.feats" :key="feat.name" class="p-1.5 bg-zinc-950/20 border border-zinc-800 rounded-sm flex flex-col gap-0.5">
+                <span class="font-bold text-zinc-200 block text-[10px] leading-tight">{{ feat.name }}</span>
+                <p class="text-[8px] text-zinc-500 leading-normal">{{ feat.desc }}</p>
+              </div>
+              <div v-if="!character.feats || character.feats.length === 0" class="text-center py-2 text-zinc-700 text-[8px] italic border border-dashed border-zinc-900 rounded-sm">
+                Черты не добавлены
+              </div>
+            </div>
+          </div>
+
+        </div> <!-- Closes activeTab === 'details' -->
 
       </div>
     </template>

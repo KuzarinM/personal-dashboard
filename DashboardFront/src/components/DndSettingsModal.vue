@@ -4,13 +4,13 @@ import { request } from '@/api'
 
 const props = defineProps({
   isOpen: Boolean,
-  characterData: Object
+  characterData: Object,
+  dashboardId: Number
 })
 
 const emit = defineEmits(['close', 'save'])
 
 const activeSettingsTab = ref('general')
-const form = ref({})
 const catalog = ref({ items: [], spells: [] })
 
 // Состояние поискового интерфейса импорта
@@ -20,13 +20,14 @@ const importSearchQuery = ref('')
 
 const loadCatalog = async () => {
   try {
-    catalog.value = await request('/dnd/catalog')
+    // ИСПРАВЛЕНО: запрашиваем каталог дашборда (учитывает публичный гостевой режим)
+    catalog.value = await request(`/dnd/catalog?dashboardId=${props.dashboardId}`)
   } catch (e) {
     console.error('Failed reading dnd catalog from backend', e)
   }
 }
 
-// Конструктор каноничного листа из 18 навыков D&D 5e
+// Конструктор чистого пустого шаблона листа персонажа
 const createEmptyCharacter = () => ({
   name: 'Новый Персонаж',
   race: '',
@@ -40,6 +41,9 @@ const createEmptyCharacter = () => ({
   initiative: 0,
   speed: 30,
   passivePerception: 10,
+  spellAttackBonus: 7, 
+  spellSaveDc: 15,     
+  inspiration: false,  
   stats: [
     { name: 'СИЛ', value: 10, mod: 0 },
     { name: 'ЛОВ', value: 10, mod: 0 },
@@ -78,8 +82,12 @@ const createEmptyCharacter = () => ({
   coins: { cp: 0, sp: 0, ep: 0, gp: 0, pp: 0 },
   inventory: [],
   rests: { shortRemaining: 2, shortMax: 2, longRemaining: 1, longMax: 1 },
-  effects: []
+  effects: [],
+  feats: []
 })
+
+// ИСПРАВЛЕНО: Форма инициализируется чистым шаблоном сразу, предотвращая undefined-ошибки во Vue шаблоне
+const form = ref(createEmptyCharacter())
 
 watch(() => props.isOpen, (val) => {
   if (val) {
@@ -87,15 +95,12 @@ watch(() => props.isOpen, (val) => {
     isImportOpen.value = false
     importSearchQuery.value = ''
     
-    // Если на бэкенде еще пусто - инициализируем чистый скелет
     let rawData = props.characterData ? JSON.parse(JSON.stringify(props.characterData)) : null
     if (!rawData || !rawData.name || !rawData.stats) {
       rawData = createEmptyCharacter()
     }
 
-    // ИСПРАВЛЕНО: Интеллектуальное авто-слияние навыков
-    // Гарантирует, что в настройках ВСЕГДА будет отображаться ровно 18 каноничных навыков,
-    // при этом старые сохраненные значения (бонусы/галочки) не затрутся.
+    // Восстанавливаем каноничный список из 18 навыков при необходимости
     const standardSkills = createEmptyCharacter().skills
     if (!rawData.skills || rawData.skills.length === 0) {
       rawData.skills = standardSkills
@@ -105,6 +110,19 @@ watch(() => props.isOpen, (val) => {
         return existing ? existing : defaultSkill
       })
     }
+
+    // Инициализация кастерских характеристик
+    rawData.spellAttackBonus = rawData.spellAttackBonus !== undefined ? rawData.spellAttackBonus : 7
+    rawData.spellSaveDc = rawData.spellSaveDc !== undefined ? rawData.spellSaveDc : 15
+    rawData.inspiration = rawData.inspiration !== undefined ? rawData.inspiration : false
+
+    // Инициализация Черт (Feats)
+    rawData.feats = (rawData.feats || []).map(f => {
+      return {
+        name: f.name || '',
+        desc: f.desc || ''
+      }
+    })
 
     // Формируем 9 уровней ячеек
     const currentSlots = rawData.spellSlots || []
@@ -149,6 +167,20 @@ const removeSpell = (idx) => {
   form.value.spells.splice(idx, 1)
 }
 
+// Управление чертами и особенностями
+const addFeat = () => {
+  if (!form.value.feats) {
+    form.value.feats = []
+  }
+  form.value.feats.push({ name: 'Новая черта', desc: '' })
+}
+
+const removeFeat = (idx) => {
+  if (form.value.feats) {
+    form.value.feats.splice(idx, 1)
+  }
+}
+
 // --- УМНЫЙ ИМПОРТ ИЗ КАТАЛОГА С ПОИСКОМ ---
 const openImportPanel = (type) => {
   importType.value = type
@@ -191,7 +223,7 @@ const importItem = (template) => {
 const importSpell = (template) => {
   form.value.spells.push({
     name: template.name,
-    level: template.level ?? 1, // <-- ИСПРАВЛЕНО: заменили || на ??
+    level: template.level ?? 1,
     isPrepared: false,
     isRitual: !!template.isRitual,
     url: template.url || ''
@@ -201,7 +233,8 @@ const importSpell = (template) => {
 
 const syncWithGlobalCatalog = async (items, spells) => {
   try {
-    const currentCat = await request('/dnd/catalog')
+    // ИСПРАВЛЕНО: синхронизируем с каталогом этого дашборда напрямую
+    const currentCat = await request(`/dnd/catalog?dashboardId=${props.dashboardId}`)
     let updated = false
 
     items.forEach(item => {
@@ -231,7 +264,7 @@ const syncWithGlobalCatalog = async (items, spells) => {
     })
 
     if (updated) {
-      await request('/dnd/catalog', {
+      await request(`/dnd/catalog?dashboardId=${props.dashboardId}`, {
         method: 'PUT',
         body: JSON.stringify(currentCat)
       })
@@ -251,6 +284,11 @@ const handleSave = () => {
     desc: item.desc,
     isEquipped: !!item.isEquipped,
     tags: item.tagsRaw ? item.tagsRaw.split(',').map(t => t.trim().toLowerCase()).filter(Boolean) : []
+  }))
+
+  payload.feats = payload.feats.map(f => ({
+    name: f.name,
+    desc: f.desc
   }))
 
   syncWithGlobalCatalog(payload.inventory, payload.spells)
@@ -361,10 +399,14 @@ const handleSave = () => {
               <input v-model="form.languagesRaw" class="input-cyber" placeholder="Общий, Эльфийский">
             </div>
           </div>
-          <div class="grid grid-cols-2 md:grid-cols-5 gap-3 pt-2">
+          <div class="grid grid-cols-2 md:grid-cols-6 gap-3 pt-2">
             <div>
               <label class="label-cyber">Макс. ХП</label>
               <input v-model.number="form.hp.max" type="number" class="input-cyber">
+            </div>
+            <div>
+              <label class="label-cyber">Текущие ХП</label>
+              <input v-model.number="form.hp.current" type="number" class="input-cyber">
             </div>
             <div>
               <label class="label-cyber">AC</label>
@@ -383,6 +425,41 @@ const handleSave = () => {
               <input v-model.number="form.passivePerception" type="number" class="input-cyber">
             </div>
           </div>
+
+          <!-- Настройка магических показателей кастера -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-zinc-900">
+            <div>
+              <label class="label-cyber">Магическая Сила (Бонус атаки)</label>
+              <input v-model.number="form.spellAttackBonus" type="number" class="input-cyber text-xs">
+            </div>
+            <div>
+              <label class="label-cyber">Магическая Защита (Сложность спасброска)</label>
+              <input v-model.number="form.spellSaveDc" type="number" class="input-cyber text-xs">
+            </div>
+          </div>
+
+          <!-- Редактор Черт и Особенностей -->
+          <div class="space-y-3 pt-4 border-t border-zinc-900">
+            <div class="flex justify-between items-center pb-1">
+              <span class="text-[10px] text-emerald-500 uppercase font-bold">Черты и особенности</span>
+              <button @click="addFeat" class="text-[10px] text-emerald-400 hover:underline outline-none">[+] ДОБАВИТЬ ЧЕРТУ</button>
+            </div>
+            <div class="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+              <div v-for="(feat, idx) in form.feats" :key="idx" class="flex flex-col gap-2 bg-zinc-950 p-2.5 border border-zinc-800 rounded relative">
+                <button @click="removeFeat(idx)" class="absolute top-2 right-2 text-zinc-600 hover:text-red-500 font-bold outline-none">×</button>
+                <div class="grid grid-cols-1 gap-2 pr-6">
+                  <div>
+                    <label class="label-cyber text-[8px]">Название черты</label>
+                    <input v-model="feat.name" class="input-cyber text-xs">
+                  </div>
+                  <div>
+                    <label class="label-cyber text-[8px]">Описание / Эффект</label>
+                    <input v-model="feat.desc" class="input-cyber text-xs" placeholder="Свойства и бонусы черты...">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- ВКЛАДКА 2: ХАРАКТЕРИСТИКИ & НАВЫКИ -->
@@ -396,7 +473,7 @@ const handleSave = () => {
             </div>
           </div>
 
-          <!-- Редактор Модификаторов Навыков (Теперь 18 каноничных навыков) -->
+          <!-- Редактор Навыков -->
           <div class="text-[10px] text-emerald-500 border-b border-zinc-800 pb-1 uppercase font-bold pt-4">Модификаторы навыков и владение</div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-64 overflow-y-auto custom-scrollbar pr-1">
             <div v-for="skill in form.skills" :key="skill.name" class="bg-zinc-950 p-2 border border-zinc-800 rounded-sm flex items-center justify-between">
@@ -483,27 +560,27 @@ const handleSave = () => {
                 
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
                   <div class="md:col-span-2">
-                    <label class="label-cyber text-[8px]">Название предмета</label>
+                    <label class="label-cyber">Название предмета</label>
                     <input v-model="item.name" class="input-cyber text-xs">
                   </div>
                   <div>
-                    <label class="label-cyber text-[8px]">Количество</label>
+                    <label class="label-cyber">Количество</label>
                     <input v-model.number="item.qty" type="number" min="1" class="input-cyber text-xs">
                   </div>
                   <div>
-                    <label class="label-cyber text-[8px]">Теги (через запятую)</label>
+                    <label class="label-cyber">Теги (через запятую)</label>
                     <input v-model="item.tagsRaw" class="input-cyber text-xs" placeholder="магия, фокус">
                   </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
                   <div>
-                    <label class="label-cyber text-[8px]">Ссылка на Wiki</label>
+                    <label class="label-cyber">Ссылка на Wiki</label>
                     <input v-model="item.url" class="input-cyber text-xs text-emerald-500/80" placeholder="https://...">
                   </div>
                   <div class="flex flex-col justify-between">
                     <div>
-                      <label class="label-cyber text-[8px]">Описание / Заметка</label>
+                      <label class="label-cyber">Описание / Заметка</label>
                       <input v-model="item.desc" class="input-cyber text-xs" placeholder="Описание свойств...">
                     </div>
                     <label class="flex items-center gap-2 cursor-pointer text-[10px] mt-2">

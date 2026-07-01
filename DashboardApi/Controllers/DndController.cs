@@ -11,7 +11,7 @@ namespace DashboardApi.Controllers
 {
     [Route("api/dnd")]
     [ApiController]
-    [Authorize]
+    [Authorize] // По умолчанию все методы требуют JWT
     public class DndController : ControllerBase
     {
         private readonly AppDbContext _db;
@@ -23,15 +23,21 @@ namespace DashboardApi.Controllers
             _hub = hub;
         }
 
-        private int GetUserId() => int.Parse(User.FindFirst("id")?.Value ?? "0");
+        // Безопасное извлечение ID (возвращает 0, если запрос анонимный)
+        private int GetUserId()
+        {
+            var claim = User.FindFirst("id");
+            return claim != null && int.TryParse(claim.Value, out var id) ? id : 0;
+        }
 
-        // Проверка прав на редактирование дашборда (Владелец или Редактор)
         private async Task<bool> CanEdit(int dashboardId)
         {
             var uid = GetUserId();
+            if (uid == 0) return false; // Гости не могут редактировать
+
             var dash = await _db.Dashboards.AsNoTracking().FirstOrDefaultAsync(d => d.Id == dashboardId);
             if (dash == null) return false;
-            if (dash.UserId == uid) return true;
+            if (dash.UserId == uid) return true; // Владелец
 
             var access = await _db.DashboardAccesses.AsNoTracking()
                 .FirstOrDefaultAsync(a => a.DashboardId == dashboardId && a.UserId == uid);
@@ -39,26 +45,39 @@ namespace DashboardApi.Controllers
         }
 
         // ==========================================
-        // 1. ЛИСТ ПЕРСОНАЖА (DndCharacter)
+        // 1. ЛИСТ ПЕРСОНАЖА (Чтение разрешено анонимам, если дашборд IsPublic)
         // ==========================================
-
         [HttpGet("{dashboardId}/character")]
+        [AllowAnonymous] // <-- Разрешаем анонимный доступ для публичных страниц
         public async Task<IActionResult> GetCharacter(int dashboardId)
         {
             var dash = await _db.Dashboards.AsNoTracking().FirstOrDefaultAsync(d => d.Id == dashboardId);
             if (dash == null) return NotFound("Dashboard not found");
 
-            // Проверка прав на чтение (если приватный)
-            if (!dash.IsPublic && dash.UserId != GetUserId())
+            var userId = GetUserId();
+            bool hasAccess = false;
+
+            if (dash.IsPublic)
             {
-                var hasAccess = await _db.DashboardAccesses.AnyAsync(a => a.DashboardId == dashboardId && a.UserId == GetUserId());
-                if (!hasAccess) return Forbid();
+                hasAccess = true; // Гости могут просматривать публичные страницы
+            }
+            else if (userId != 0)
+            {
+                if (dash.UserId == userId)
+                {
+                    hasAccess = true;
+                }
+                else
+                {
+                    hasAccess = await _db.DashboardAccesses.AnyAsync(a => a.DashboardId == dashboardId && a.UserId == userId);
+                }
             }
 
-            var character = await _db.DndCharacters.FirstOrDefaultAsync(c => c.DashboardId == dashboardId);
+            if (!hasAccess) return Forbid();
+
+            var character = await _db.DndCharacters.AsNoTracking().FirstOrDefaultAsync(c => c.DashboardId == dashboardId);
             if (character == null)
             {
-                // Возвращаем пустую структуру, фронтенд заполнит её дефолтными моками
                 return Ok(new { });
             }
 
@@ -66,9 +85,18 @@ namespace DashboardApi.Controllers
         }
 
         [HttpPut("{dashboardId}/character")]
+        [AllowAnonymous] // <-- Разрешаем вызов анонимным гостям
         public async Task<IActionResult> SaveCharacter(int dashboardId, [FromBody] JsonElement data)
         {
-            if (!await CanEdit(dashboardId)) return Forbid();
+            var dash = await _db.Dashboards.AsNoTracking().FirstOrDefaultAsync(d => d.Id == dashboardId);
+            if (dash == null) return NotFound("Dashboard not found");
+
+            // ИСПРАВЛЕНИЕ: Если дашборд публичный, разрешаем сохранение ВСЕМ (включая анонимов)
+            // Если приватный — строго требуем права CanEdit ( Owner или Editor )
+            if (!dash.IsPublic)
+            {
+                if (!await CanEdit(dashboardId)) return Forbid();
+            }
 
             var character = await _db.DndCharacters.FirstOrDefaultAsync(c => c.DashboardId == dashboardId);
             var jsonStr = data.ToString();
@@ -89,24 +117,47 @@ namespace DashboardApi.Controllers
 
             await _db.SaveChangesAsync();
 
-            // Сигнал SignalR для мгновенной инвалидации данных на фронтенде
+            // Оповещаем все открытые вкладки этого дашборда по SignalR
             await _hub.Clients.Group(dashboardId.ToString()).SendAsync("InvalidateData", "dnd_character");
 
             return Ok(new { success = true });
         }
 
         // ==========================================
-        // 2. ОБЩИЙ КАТАЛОГ (DndCatalog)
+        // 2. ОБЩИЙ КАТАЛОГ (Разрешен анонимам, если передан публичный dashboardId)
         // ==========================================
 
         [HttpGet("catalog")]
-        public async Task<IActionResult> GetCatalog()
+        [AllowAnonymous] // <-- Разрешаем анонимный доступ
+        public async Task<IActionResult> GetCatalog([FromQuery] int? dashboardId)
         {
+            int targetUserId = 0;
             var userId = GetUserId();
-            var catalog = await _db.DndCatalogs.FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (dashboardId.HasValue)
+            {
+                var dash = await _db.Dashboards.AsNoTracking().FirstOrDefaultAsync(d => d.Id == dashboardId.Value);
+                if (dash == null) return NotFound("Dashboard not found");
+
+                // Если дашборд приватный - проверяем доступ
+                if (!dash.IsPublic && dash.UserId != userId)
+                {
+                    var hasAccess = await _db.DashboardAccesses.AnyAsync(a => a.DashboardId == dashboardId.Value && a.UserId == userId);
+                    if (!hasAccess) return Forbid();
+                }
+
+                targetUserId = dash.UserId; // Читаем каталог владельца этого дашборда
+            }
+            else
+            {
+                // Запасной вариант для запросов вне дашборда
+                if (userId == 0) return Unauthorized("Authentication required");
+                targetUserId = userId;
+            }
+
+            var catalog = await _db.DndCatalogs.AsNoTracking().FirstOrDefaultAsync(c => c.UserId == targetUserId);
             if (catalog == null)
             {
-                // Возвращаем пустую структуру
                 return Ok(new { items = new List<object>(), spells = new List<object>() });
             }
 
@@ -114,17 +165,40 @@ namespace DashboardApi.Controllers
         }
 
         [HttpPut("catalog")]
-        public async Task<IActionResult> SaveCatalog([FromBody] JsonElement data)
+        [AllowAnonymous] // <-- Разрешаем анонимное изменение
+        public async Task<IActionResult> SaveCatalog([FromQuery] int? dashboardId, [FromBody] JsonElement data)
         {
+            int targetUserId = 0;
             var userId = GetUserId();
-            var catalog = await _db.DndCatalogs.FirstOrDefaultAsync(c => c.UserId == userId);
+
+            if (dashboardId.HasValue)
+            {
+                var dash = await _db.Dashboards.AsNoTracking().FirstOrDefaultAsync(d => d.Id == dashboardId.Value);
+                if (dash == null) return NotFound("Dashboard not found");
+
+                // Если дашборд публичный — любой гость может пополнять каталог владельца.
+                // Если приватный — строго требуем права CanEdit (Владелец/Редактор)
+                if (!dash.IsPublic)
+                {
+                    if (!await CanEdit(dashboardId.Value)) return Forbid();
+                }
+
+                targetUserId = dash.UserId;
+            }
+            else
+            {
+                if (userId == 0) return Unauthorized("Authentication required");
+                targetUserId = userId;
+            }
+
+            var catalog = await _db.DndCatalogs.FirstOrDefaultAsync(c => c.UserId == targetUserId);
             var jsonStr = data.ToString();
 
             if (catalog == null)
             {
                 catalog = new DndCatalog
                 {
-                    UserId = userId,
+                    UserId = targetUserId,
                     DataJson = jsonStr
                 };
                 _db.DndCatalogs.Add(catalog);
@@ -136,8 +210,15 @@ namespace DashboardApi.Controllers
 
             await _db.SaveChangesAsync();
 
-            // Оповещаем все сессии пользователя об обновлении общего каталога
-            await _hub.Clients.User(userId.ToString()).SendAsync("InvalidateData", "dnd_catalog");
+            // Рассылаем SignalR оповещение всем открытым вкладкам дашборда
+            if (dashboardId.HasValue)
+            {
+                await _hub.Clients.Group(dashboardId.Value.ToString()).SendAsync("InvalidateData", "dnd_catalog");
+            }
+            else
+            {
+                await _hub.Clients.User(targetUserId.ToString()).SendAsync("InvalidateData", "dnd_catalog");
+            }
 
             return Ok(new { success = true });
         }
