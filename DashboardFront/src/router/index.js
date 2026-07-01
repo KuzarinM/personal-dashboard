@@ -19,30 +19,50 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      // Вместо компонента — функция редиректа
       beforeEnter: async (to, from, next) => {
         const token = localStorage.getItem('jwt_token')
+        if (!token) {
+          return next('/login')
+        }
+        
         try {
-          // Делаем запрос к уже существующему списку
-          // Используем fetch напрямую, чтобы не срабатывал редирект из api.js раньше времени
+          // Запрашиваем список дашбордов
           const res = await fetch('/api/dashboards/list', {
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            headers: { 'Authorization': `Bearer ${token}` }
           })
           
           if (res.ok) {
             const list = await res.json()
             if (list.length > 0) {
               return next(`/${list[0].id}`) // Прыгаем на первый доступный
+            } else {
+              // ИСПРАВЛЕНО: Если дашбордов нет вообще, но токен активен — 
+              // автоматически создаем дефолтный дашборд "на лету" через API
+              const createRes = await fetch('/api/dashboards', {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${token}`,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title: 'MAIN_DASHBOARD', isPublic: false })
+              })
+              
+              if (createRes.ok) {
+                const newDash = await createRes.ok ? await createRes.json() : null
+                if (newDash && newDash.id) {
+                  return next(`/${newDash.id}`) // Мгновенно переходим на созданный дашборд
+                }
+              }
             }
           }
         } catch (e) {
           console.error("Home redirect failed", e)
         }
         
-        // Если дашбордов нет или ошибка — на логин
+        // Если произошла непредвиденная ошибка — отправляем на логин
         next('/login')
       }
-    },
+    },,
     {
       path: '/:dashboardId(\\d+)',
       name: 'dashboard',

@@ -51,8 +51,6 @@ namespace DashboardApi.Controllers
                 Username = dto.Username,
                 PasswordHash = _auth.HashPassword(dto.Password),
                 IsAdmin = false, // Новые юзеры всегда не админы
-
-                // Дефолтный статус
                 StatusText = "Newbie",
                 StatusEmoji = "👋",
                 StatusColor = "zinc",
@@ -60,6 +58,23 @@ namespace DashboardApi.Controllers
             };
 
             _db.Users.Add(user);
+            await _db.SaveChangesAsync(); // Сохраняем пользователя, чтобы получить его ID
+
+            // --- АВТОМАТИЧЕСКОЕ СОЗДАНИЕ ДЕФОЛТНОГО ДАШБОРДА ДЛЯ НОВОГО ЮЗЕРА ---
+            var defaultDashboard = new Dashboard
+            {
+                UserId = user.Id,
+                Title = "MAIN_DASHBOARD",
+                IsPublic = false,
+                ScheduleEnabled = true,
+                ScheduleStart = "10:00",
+                ScheduleEnd = "19:00",
+                ScheduleDays = "1,2,3,4,5",
+                WidgetLayout = "",
+                HeaderLayout = ""
+            };
+
+            _db.Dashboards.Add(defaultDashboard);
             await _db.SaveChangesAsync();
 
             return Ok(new { message = "Registration successful" });
