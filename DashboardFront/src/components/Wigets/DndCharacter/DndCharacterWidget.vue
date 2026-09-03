@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 import { request } from '@/api'
 import { useSignalR } from '@/composables/useSignalR'
-import DndSettingsModal from '@/components/DndSettingsModal.vue'
+import DndSettingsModal from '@/components/Wigets/DndCharacter/DndSettingsModal.vue'
 
 const props = defineProps({
   dashboardId: Number,

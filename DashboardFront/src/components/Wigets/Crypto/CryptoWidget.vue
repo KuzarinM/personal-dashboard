@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { request } from '@/api'
-import CryptoSettingsModal from '@/components/CryptoSettingsModal.vue'
+import CryptoSettingsModal from '@/components/Wigets/Crypto/CryptoSettingsModal.vue'
 
 const props = defineProps({
   dashboardId: Number

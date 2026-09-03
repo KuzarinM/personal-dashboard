@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { request } from '@/api'
 import { useSignalR } from '@/composables/useSignalR'
-import MonitoringSettingsModal from '@/components/MonitoringSettingsModal.vue'
+import MonitoringSettingsModal from '@/components/Wigets/Monitoring/MonitoringSettingsModal.vue'
 
 const props = defineProps({ dashboardId: Number })
 const { on, off } = useSignalR()

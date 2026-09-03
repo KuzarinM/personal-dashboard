@@ -4,6 +4,7 @@ using DashboardApi.DTOs.Email;
 using DashboardApi.DTOs.Integrations;
 using DashboardApi.DTOs.Weather;
 using GenerativeAI.Types;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
@@ -23,6 +24,7 @@ namespace DashboardApi.Services
         private readonly WeatherService _weatherService;
         private readonly TelegramService _telegramService;
         private readonly EmailService _emailService;
+        private readonly CalendarAggregatorService _calendarService; // <--- NEW: Сервис календарей
         private readonly HttpClient _httpClient;
 
         public MorningReportService(
@@ -30,28 +32,30 @@ namespace DashboardApi.Services
             WeatherService weatherService,
             TelegramService telegramService,
             EmailService emailService,
+            CalendarAggregatorService calendarService, // <--- NEW
             HttpClient httpClient)
         {
             _db = db;
             _weatherService = weatherService;
             _telegramService = telegramService;
             _emailService = emailService;
+            _calendarService = calendarService; // <--- NEW
             _httpClient = httpClient;
         }
 
-        public async Task<string> GenerateReportAsync(int userId, DateTime? since = null)
+        public async Task<string> GenerateReportAsync(int userId, DateTime? since = null, int? dashboardId = null, bool saveSnapshot = false)
         {
             var user = await _db.Users
-                .Include(u => u.Dashboards)
+                .Include(u => u.Dashboards.Where(x => !dashboardId.HasValue || x.Id == dashboardId))
                     .ThenInclude(d => d.Categories)
                         .ThenInclude(c => c.Items)
-                .Include(u => u.Dashboards)
+                .Include(u => u.Dashboards.Where(x => !dashboardId.HasValue || x.Id == dashboardId))
                     .ThenInclude(d => d.Calendars)
-                .Include(u => u.Dashboards)
+                .Include(u => u.Dashboards.Where(x => !dashboardId.HasValue || x.Id == dashboardId))
                     .ThenInclude(d => d.ManualEvents)
-                .Include(u => u.Dashboards)
+                .Include(u => u.Dashboards.Where(x => !dashboardId.HasValue || x.Id == dashboardId))
                     .ThenInclude(d => d.Notes)
-                .Include(u => u.Dashboards)
+                .Include(u => u.Dashboards.Where(x => !dashboardId.HasValue || x.Id == dashboardId))
                     .ThenInclude(d => d.Integrations)
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
@@ -79,6 +83,7 @@ namespace DashboardApi.Services
             var sb = new StringBuilder();
             sb.AppendLine($"# MORNING EXECUTIVE SUMMARY FOR USER: {user.Username.ToUpper()}");
             sb.AppendLine($"Generated on: {DateTime.UtcNow:f} (UTC)");
+
             if (baseSnapshot != null)
             {
                 sb.AppendLine($"Comparing against state from: {baseSnapshot.CreatedAt:yyyy-MM-dd HH:mm:ss} UTC");
@@ -142,7 +147,7 @@ namespace DashboardApi.Services
 
                 AppendLinksDiff(sb, oldLinks, dLinks);
                 AppendNotesDiff(sb, oldNotes, dNotes);
-
+                await AppendEventsAsync(sb, d); // <--- NEW: Вызов добавления событий календарей
                 await AppendUptimeMonitorsAsync(sb, d.Id);
                 AppendReminders(sb, d);
                 await AppendWeatherAsync(sb, d);
@@ -157,22 +162,67 @@ namespace DashboardApi.Services
                 sb.AppendLine();
             }
 
-            _db.ReportSnapshots.Add(new ReportSnapshot
+            // Фиксация снимка выполняется ТОЛЬКО при saveSnapshot == true
+            if (saveSnapshot)
             {
-                UserId = userId,
-                CreatedAt = DateTime.UtcNow,
-                NotesJson = JsonConvert.SerializeObject(currentNotesState),
-                LinksJson = JsonConvert.SerializeObject(currentLinksState)
-            });
-            await _db.SaveChangesAsync();
+                _db.ReportSnapshots.Add(new ReportSnapshot
+                {
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    NotesJson = JsonConvert.SerializeObject(currentNotesState),
+                    LinksJson = JsonConvert.SerializeObject(currentLinksState)
+                });
+                await _db.SaveChangesAsync();
+            }
 
             return sb.ToString();
+        }
+
+        private async Task AppendEventsAsync(StringBuilder sb, Dashboard d)
+        {
+            if (!d.Calendars.Any() && !d.ManualEvents.Any())
+            {
+                return;
+            }
+
+            try
+            {
+                var events = await _calendarService.GetEventsAsync(d.Calendars, d.ManualEvents);
+                if (events != null && events.Any())
+                {
+                    sb.AppendLine("### 📅 CALENDAR & UPCOMING EVENTS");
+                    foreach (dynamic evt in events)
+                    {
+                        var dt = (DateTime)evt.date;
+                        var icon = (string)evt.icon;
+                        var name = (string)evt.name;
+                        var source = (string)evt.source;
+                        var location = (string)evt.location;
+                        var desc = (string)evt.description;
+
+                        var locStr = string.IsNullOrWhiteSpace(location) ? "" : $" (📍 {location})";
+                        var descStr = string.IsNullOrWhiteSpace(desc) ? "" : $" - {desc}";
+
+                        sb.AppendLine($"- {icon} **{name}** [{source}] on {dt:yyyy-MM-dd HH:mm} UTC{locStr}{descStr}");
+                    }
+                    sb.AppendLine();
+                }
+                else
+                {
+                    sb.AppendLine("### 📅 CALENDAR & UPCOMING EVENTS");
+                    sb.AppendLine("- No upcoming events.");
+                    sb.AppendLine();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[Report Debug] Calendar Error: {ex.Message}");
+            }
         }
 
         private void AppendUserInterests(StringBuilder sb, User user)
         {
             var aggregatedPrompts = new List<string>();
-
             foreach (var d in user.Dashboards)
             {
                 var scraperIntegration = d.Integrations.FirstOrDefault(i => i.Type == "WebScraper");
@@ -208,7 +258,6 @@ namespace DashboardApi.Services
         private void AppendLinksDiff(StringBuilder sb, List<LinkStateDto> oldLinks, List<LinkStateDto> currentLinks)
         {
             sb.AppendLine("### 🔗 SERVICES & LINKS (CHANGES)");
-
             var added = currentLinks
                 .Where(cl => !oldLinks.Any(ol => ol.CategoryTitle == cl.CategoryTitle && ol.Name == cl.Name))
                 .ToList();
@@ -252,14 +301,12 @@ namespace DashboardApi.Services
             {
                 sb.AppendLine($"- ➖ **[REMOVED]** from *{item.CategoryTitle}*: {item.Name} ({item.Url})");
             }
-
             sb.AppendLine();
         }
 
         private void AppendNotesDiff(StringBuilder sb, List<NoteStateDto> oldNotes, List<NoteStateDto> currentNotes)
         {
             sb.AppendLine("### 📝 ACTIVE NOTES (CHANGES)");
-
             var added = currentNotes
                 .Where(cn => !oldNotes.Any(on => on.Id == cn.Id))
                 .ToList();
@@ -296,7 +343,6 @@ namespace DashboardApi.Services
             {
                 var note = diff.Current;
                 var old = diff.Old;
-
                 sb.AppendLine($"#### ✏️ [MODIFIED] \"{note.Title}\" (Was: \"{old.Title}\")");
                 sb.AppendLine("**New content:**");
                 sb.AppendLine(FormatNoteContent(note.Content, note.Type));
@@ -307,7 +353,6 @@ namespace DashboardApi.Services
             {
                 sb.AppendLine($"- ➖ **[REMOVED/ARCHIVED]** Note: \"{note.Title}\"");
             }
-
             sb.AppendLine();
         }
 
@@ -358,7 +403,6 @@ namespace DashboardApi.Services
                 .ToListAsync();
 
             sb.AppendLine($"### {label} ({date:yyyy-MM-dd})");
-
             if (!entries.Any())
             {
                 sb.AppendLine("- No time logged.");
@@ -390,7 +434,6 @@ namespace DashboardApi.Services
         private async Task AppendUptimeMonitorsAsync(StringBuilder sb, int dashboardId)
         {
             sb.AppendLine("### 📡 SENSORS (UPTIME)");
-
             var monitors = await _db.Monitors
                 .Where(m => m.DashboardId == dashboardId)
                 .ToListAsync();
@@ -409,16 +452,13 @@ namespace DashboardApi.Services
                 var responseTime = m.IsUp && m.IsActive ? $" | Latency: {m.ResponseTimeMs}ms" : "";
                 sb.AppendLine($"- **{m.Name}** ({m.Type}): {status}{responseTime}{errorMsg} (Checked: {m.LastCheck:yyyy-MM-dd HH:mm} UTC)");
             }
-
             sb.AppendLine();
         }
 
         private void AppendReminders(StringBuilder sb, Dashboard d)
         {
             sb.AppendLine("### 🔔 ACTIVE REMINDERS");
-
             var reminders = d.Reminders.OrderBy(r => r.TargetTime).ToList();
-
             if (!reminders.Any())
             {
                 sb.AppendLine("- No pending reminders.");
@@ -431,7 +471,6 @@ namespace DashboardApi.Services
                 var rec = r.RecurrenceType != "None" ? $" | Repeat: {r.RecurrenceType}" : "";
                 sb.AppendLine($"- \"{r.Message}\" scheduled for {r.TargetTime:yyyy-MM-dd HH:mm} UTC{rec}");
             }
-
             sb.AppendLine();
         }
 
@@ -440,7 +479,7 @@ namespace DashboardApi.Services
             var integration = d.Integrations.FirstOrDefault(i => i.Type == "Weather");
             if (integration == null || string.IsNullOrEmpty(integration.ConfigJson))
             {
-                return; // Полностью пропускаем неконфигурированный раздел
+                return;
             }
 
             try
@@ -474,14 +513,10 @@ namespace DashboardApi.Services
             try
             {
                 var result = await _telegramService.GetUnreadMessagesAsync(dashboardId);
-
-                // ВАЖНО: Используем System.Text.Json для сериализации JsonElement,
-                // что решает проблему с 'Failed to query uplink'
                 var json = System.Text.Json.JsonSerializer.Serialize(result);
-
                 if (json.Contains("notConfigured"))
                 {
-                    return; // Полностью пропускаем неконфигурированный раздел
+                    return;
                 }
 
                 sb.AppendLine("### 💬 TELEGRAM INTEGRATION");
@@ -510,13 +545,10 @@ namespace DashboardApi.Services
             try
             {
                 var result = await _emailService.GetUnreadEmailsAsync(dashboardId);
-
-                // Используем System.Text.Json для корректной обработки
                 var json = System.Text.Json.JsonSerializer.Serialize(result);
-
                 if (json.Contains("notConfigured"))
                 {
-                    return; // Пропускаем неконфигурированный раздел
+                    return;
                 }
 
                 sb.AppendLine("### ✉️ MAIL INTEGRATION");
@@ -552,7 +584,7 @@ namespace DashboardApi.Services
             var integration = d.Integrations.FirstOrDefault(i => i.Type == "Crypto");
             if (integration == null || string.IsNullOrEmpty(integration.ConfigJson))
             {
-                return; // Пропускаем неконфигурированный раздел
+                return;
             }
 
             try
@@ -562,12 +594,10 @@ namespace DashboardApi.Services
                 {
                     var idsString = string.Join(",", config.Coins);
                     var res = await _httpClient.GetAsync($"https://api.coingecko.com/api/v3/simple/price?ids={idsString}&vs_currencies=usd&include_24hr_change=true");
-
                     if (res.IsSuccessStatusCode)
                     {
                         var rawJson = await res.Content.ReadAsStringAsync();
                         var data = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, double>>>(rawJson);
-
                         if (data != null)
                         {
                             sb.AppendLine("### 💰 CRYPTO TRACKER");
@@ -596,7 +626,7 @@ namespace DashboardApi.Services
             var integration = d.Integrations.FirstOrDefault(i => i.Type == "Fiat");
             if (integration == null || string.IsNullOrEmpty(integration.ConfigJson))
             {
-                return; // Пропускаем неконфигурированный раздел
+                return;
             }
 
             try
@@ -606,12 +636,10 @@ namespace DashboardApi.Services
                 {
                     var baseCode = config.BaseCurrency.ToLower();
                     var res = await _httpClient.GetAsync($"https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/{baseCode}.json");
-
                     if (res.IsSuccessStatusCode)
                     {
                         var rawJson = await res.Content.ReadAsStringAsync();
                         var responseData = JsonConvert.DeserializeObject<Dictionary<string, object>>(rawJson);
-
                         if (responseData != null && responseData.TryGetValue(baseCode, out var ratesObj))
                         {
                             var rates = JsonConvert.DeserializeObject<Dictionary<string, double>>(ratesObj.ToString()!);
@@ -650,30 +678,26 @@ namespace DashboardApi.Services
             var integration = d.Integrations.FirstOrDefault(i => i.Type == "WebScraper");
             if (integration == null || string.IsNullOrEmpty(integration.ConfigJson))
             {
-                return; // Пропускаем неконфигурированный раздел
+                return;
             }
 
             try
             {
                 var config = JsonConvert.DeserializeObject<WebScraperConfigDto>(integration.ConfigJson);
                 var activeTargets = config?.Targets?.Where(t => t.Enabled).ToList();
-
                 if (activeTargets != null && activeTargets.Any())
                 {
                     sb.AppendLine("### 🌐 SCRAPED WEB RESOURCES");
                     foreach (var target in activeTargets)
                     {
                         sb.AppendLine($"#### Source: {target.Name} (URL: {target.Url} | Type: {target.TargetType})");
-
                         try
                         {
                             using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromSeconds(8));
                             var response = await _httpClient.GetAsync(target.Url, cts.Token);
-
                             if (response.IsSuccessStatusCode)
                             {
                                 var content = await response.Content.ReadAsStringAsync();
-
                                 if (target.TargetType.Equals("RSS", StringComparison.OrdinalIgnoreCase))
                                 {
                                     ParseRssFeed(sb, content);
@@ -695,7 +719,6 @@ namespace DashboardApi.Services
                         {
                             sb.AppendLine($"- *Scraping failed: {ex.Message}*");
                         }
-
                         sb.AppendLine();
                     }
                 }
@@ -712,7 +735,6 @@ namespace DashboardApi.Services
             {
                 var doc = XDocument.Parse(xmlContent);
                 var items = doc.Descendants("item").Take(10).ToList();
-
                 if (!items.Any())
                 {
                     items = doc.Descendants(XName.Get("entry", "http://www.w3.org/2005/Atom")).Take(10).ToList();
@@ -759,15 +781,12 @@ namespace DashboardApi.Services
             }
 
             string result = html;
-
             result = Regex.Replace(result, @"<!--[\s\S]*?-->", "", RegexOptions.IgnoreCase);
             result = Regex.Replace(result, @"<script[^>]*>[\s\S]*?</script>", "", RegexOptions.IgnoreCase);
             result = Regex.Replace(result, @"<style[^>]*>[\s\S]*?</style>", "", RegexOptions.IgnoreCase);
             result = Regex.Replace(result, @"<svg[^>]*>[\s\S]*?</svg>", "", RegexOptions.IgnoreCase);
-
             result = Regex.Replace(result, @"\s+", " ");
             result = Regex.Replace(result, @"\s{2,}", " ");
-
             return result.Trim();
         }
 
@@ -776,7 +795,7 @@ namespace DashboardApi.Services
             var status = _db.Statuses.AsNoTracking().FirstOrDefault(s => s.DashboardId == d.Id);
             if (status == null)
             {
-                return; // Пропускаем, если неактивно
+                return;
             }
 
             var totalBreakMin = status.TotalBreakMs / 1000 / 60;

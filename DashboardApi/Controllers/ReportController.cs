@@ -31,9 +31,12 @@ namespace DashboardApi.Controllers
             return claim != null ? int.Parse(claim.Value) : 0;
         }
 
-        // 1. Сырой Markdown-отчет
+        // 1. Сырой Markdown-отчет (НЕ фиксирует снимок по умолчанию для отладки)
         [HttpGet("morning")]
-        public async Task<IActionResult> GetMorningReport([FromQuery] DateTime? since)
+        public async Task<IActionResult> GetMorningReport(
+            [FromQuery] DateTime? since,
+            [FromQuery] int? dashboardId = null,
+            [FromQuery] bool saveSnapshot = false)
         {
             var userId = GetUserId();
             if (userId == 0)
@@ -43,7 +46,7 @@ namespace DashboardApi.Controllers
 
             try
             {
-                var reportMarkdown = await _reportService.GenerateReportAsync(userId, since);
+                var reportMarkdown = await _reportService.GenerateReportAsync(userId, since, dashboardId, saveSnapshot);
                 return Content(reportMarkdown, "text/markdown");
             }
             catch (Exception ex)
@@ -52,9 +55,12 @@ namespace DashboardApi.Controllers
             }
         }
 
-        // 2. Сценарий подкаста (текст)
+        // 2. Сценарий подкаста (НЕ фиксирует снимок по умолчанию для отладки)
         [HttpGet("podcast")]
-        public async Task<IActionResult> GetMorningPodcast([FromQuery] DateTime? since)
+        public async Task<IActionResult> GetMorningPodcast(
+            [FromQuery] DateTime? since,
+            [FromQuery] int? dashboardId = null,
+            [FromQuery] bool saveSnapshot = false)
         {
             var userId = GetUserId();
             if (userId == 0)
@@ -64,7 +70,7 @@ namespace DashboardApi.Controllers
 
             try
             {
-                var reportMarkdown = await _reportService.GenerateReportAsync(userId, since);
+                var reportMarkdown = await _reportService.GenerateReportAsync(userId, since, dashboardId, saveSnapshot);
                 var podcastScript = await _podcastService.GeneratePodcastScriptAsync(reportMarkdown);
                 return Content(podcastScript, "text/plain");
             }
@@ -74,9 +80,12 @@ namespace DashboardApi.Controllers
             }
         }
 
-        // 3. Синтез готового подкаста (аудио MP3)
+        // 3. Синтез готового подкаста (ФИКСИРУЕТ снимок по умолчанию, так как это финальный прогон)
         [HttpGet("podcast/audio")]
-        public async Task<IActionResult> GetMorningPodcastAudio([FromQuery] DateTime? since)
+        public async Task<IActionResult> GetMorningPodcastAudio(
+            [FromQuery] DateTime? since,
+            [FromQuery] int? dashboardId = null,
+            [FromQuery] bool saveSnapshot = true)
         {
             var userId = GetUserId();
             if (userId == 0)
@@ -86,7 +95,7 @@ namespace DashboardApi.Controllers
 
             try
             {
-                var reportMarkdown = await _reportService.GenerateReportAsync(userId, since);
+                var reportMarkdown = await _reportService.GenerateReportAsync(userId, since, dashboardId, saveSnapshot);
                 var podcastScript = await _podcastService.GeneratePodcastScriptAsync(reportMarkdown);
                 var audioBytes = await _freeTtsService.SynthesizeSpeechAsync(podcastScript);
 
@@ -103,7 +112,7 @@ namespace DashboardApi.Controllers
             }
         }
 
-        // 4. НОВЫЙ ВЫДЕЛЕННЫЙ ЭНДПОИНТ ДЛЯ ТЕСТИРОВАНИЯ И ОТЛАДКИ TTS (БЕЗ УЧАСТИЯ GEMINI LLM)
+        // 4. Эндпоинт для тестирования TTS
         [HttpGet("test-tts")]
         public async Task<IActionResult> TestTtsSystem([FromQuery] string? text)
         {
@@ -113,13 +122,11 @@ namespace DashboardApi.Controllers
                 return Unauthorized();
             }
 
-            // Текст по умолчанию на русском языке для теста, если параметр пуст
             var testText = text ?? "Привет! Это проверочное сообщение для тестирования синтеза речи на вашем дашборде. Звук должен воспроизводиться чисто и без помех.";
 
             try
             {
                 var audioBytes = await _freeTtsService.SynthesizeSpeechAsync(testText);
-
                 if (audioBytes == null || audioBytes.Length == 0)
                 {
                     return StatusCode(500, "TTS Test failed. No audio generated.");

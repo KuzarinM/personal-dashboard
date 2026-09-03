@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { request } from '@/api'
-import AlarmOverlay from '@/components/AlarmOverlay.vue'
+import AlarmOverlay from '@/components/Wigets/Reminder/AlarmOverlay.vue'
 
 const props = defineProps({ dashboardId: Number })
 

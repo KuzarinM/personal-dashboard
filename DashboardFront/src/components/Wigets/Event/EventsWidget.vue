@@ -1,7 +1,7 @@
 <script setup>
 import { ref } from 'vue'
-import CountdownTimer from '@/components/CountdownTimer.vue'
-import EventsModal from '@/components/EventsModal.vue'
+import CountdownTimer from '@/components/Wigets/Event/CountdownTimer.vue'
+import EventsModal from '@/components/Wigets/Event/EventsModal.vue'
 
 const props = defineProps({
   dashboardId: Number,

@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
 import { request } from '@/api'
-import WeatherSettingsModal from '@/components/WeatherSettingsModal.vue'
+import WeatherSettingsModal from '@/components/Wigets/Weather/WeatherSettingsModal.vue'
 
 const props = defineProps({
   dashboardId: Number,

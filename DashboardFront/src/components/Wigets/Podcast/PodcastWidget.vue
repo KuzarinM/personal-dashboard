@@ -35,7 +35,7 @@ const generatePodcast = async () => {
   try {
     const token = localStorage.getItem('jwt_token')
     
-    const response = await fetch(`/api/reports/podcast/audio`, {
+    const response = await fetch(`/api/reports/podcast/audio?dashboardId=${props.dashboardId}`, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
@@ -97,7 +97,7 @@ const fetchDebugContent = async () => {
   debugContent.value = ''
   try {
     const endpoint = debugTab.value === 'script' ? '/reports/podcast' : '/reports/morning'
-    const response = await fetch(`/api${endpoint}`, {
+    const response = await fetch(`/api${endpoint}?dashboardId=${props.dashboardId}`, {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('jwt_token')}`
       }

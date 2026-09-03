@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { request } from '@/api'
 import { useSignalR } from '@/composables/useSignalR'
-import UserStatusSettingsModal from '@/components/UserStatusSettingsModal.vue'
+import UserStatusSettingsModal from '@/components/Wigets/UserStatus/UserStatusSettingsModal.vue'
 
 const props = defineProps({ 
     dashboardId: Number,

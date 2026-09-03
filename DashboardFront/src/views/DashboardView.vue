@@ -10,17 +10,17 @@ import TheHeader from '@/components/dashboard/TheHeader.vue'
 import TheSidebar from '@/components/dashboard/TheSidebar.vue'
 import TimeStatusWidget from '@/components/dashboard/TimeStatusWidget.vue'
 import NetworkWidget from '@/components/dashboard/NetworkWidget.vue'
-import FloatingWindow from '@/components/FloatingWindow.vue'
+import FloatingWindow from '@/components/common/FloatingWindow.vue'
 
 // --- WIDGETS (For Floating Windows) ---
-import NotesWidget from '@/components/NotesWidget.vue'
-import ServiceCard from '@/components/ServiceCard.vue'
-import AlarmOverlay from '@/components/AlarmOverlay.vue'
+import NotesWidget from '@/components/Notes/NotesWidget.vue'
+import ServiceCard from '@/components/References/ServiceCard.vue'
+import AlarmOverlay from '@/components/Wigets/Reminder/AlarmOverlay.vue'
 
 // --- MODALS ---
-import DashboardManagerModal from '@/components/DashboardManagerModal.vue'
-import SettingsModal from '@/components/SettingsModal.vue'
-import MenuEditorModal from '@/components/MenuEditorModal.vue'
+import DashboardManagerModal from '@/components/common/DashboardManagerModal.vue'
+import SettingsModal from '@/components/common/SettingsModal.vue'
+import MenuEditorModal from '@/components/common/MenuEditorModal.vue'
 
 const props = defineProps(['dashboardId'])
 const router = useRouter()

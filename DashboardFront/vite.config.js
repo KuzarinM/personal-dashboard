@@ -19,7 +19,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        //target: 'https://dev.me.mcrt.space',
+        //target: 'https://me.mcrt.space',
         target:"https://localhost:7052",
         changeOrigin: true,
         secure: false, // Игнорировать самоподписанный сертификат

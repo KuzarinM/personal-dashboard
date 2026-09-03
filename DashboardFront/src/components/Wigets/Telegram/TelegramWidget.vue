@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { request } from '@/api'
 import { useSignalR } from '@/composables/useSignalR'
-import TelegramSettingsModal from '@/components/TelegramSettingsModal.vue'
+import TelegramSettingsModal from '@/components/Wigets/Telegram/TelegramSettingsModal.vue'
 
 const props = defineProps({ dashboardId: Number })
 const emit = defineEmits(['error-change'])

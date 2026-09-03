@@ -1,7 +1,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { request } from '@/api'
-import FiatSettingsModal from '@/components/FiatSettingsModal.vue'
+import FiatSettingsModal from '@/components/Wigets/Fiat/FiatSettingsModal.vue'
 
 const props = defineProps({
   dashboardId: Number

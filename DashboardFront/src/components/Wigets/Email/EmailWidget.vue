@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { request } from '@/api'
 import { useSignalR } from '@/composables/useSignalR'
-import EmailSettingsModal from '@/components/EmailSettingsModal.vue'
+import EmailSettingsModal from '@/components/Wigets/Email/EmailSettingsModal.vue'
 
 const props = defineProps({ dashboardId: Number })
 const emit = defineEmits(['error-change'])
